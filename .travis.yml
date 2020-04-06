@@ -1,0 +1,10 @@
+language: bash
+
+services:
+  - docker
+
+before_install:
+  - sudo pip install yamllint
+
+script:
+  - ./.lint.sh
