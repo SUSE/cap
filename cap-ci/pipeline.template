@@ -190,6 +190,10 @@ jobs:
       - name: s3.kubecf-bundle
       - name: pool.kube-hosts
       params:
+        BRAIN_VERBOSE: {{(ds "BRAIN_VERBOSE")}}
+        BRAIN_INORDER: {{(ds "BRAIN_INORDER")}}
+        BRAIN_INCLUDE: "{{(ds "BRAIN_INCLUDE")}}"
+        BRAIN_EXCLUDE: "{{(ds "BRAIN_EXCLUDE")}}"
         QUIET_OUTPUT: true
         DEFAULT_STACK: cflinuxfs3
 {{- if eq $EiriniFlag "eirini" }}
