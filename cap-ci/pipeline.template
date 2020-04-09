@@ -37,6 +37,11 @@ resource_types:
     repository: resource/github-status
     tag: release
 
+- name: helm-chart
+  type: docker-image
+  source:
+    repository: linkyard/helm-chart-resource
+
 resources:
 - name: catapult
   type: git
