@@ -5,7 +5,6 @@ groups:
 {{ range $_, $Backend := (ds "BACKEND").backend -}} # for all backends
 - name: {{$Backend}}
   jobs:
-
 {{ range $_, $Jobs := slice "create-k8s" "deploy" "smoke-tests" "cf-acceptance-tests-brain" "cf-acceptance-tests" "sync-integration-tests" "upgrade" "stratos" -}} # for jobs
 {{ range $_, $EiriniFlag := (ds "EIRINI").eirini -}} # for eirini
 {{ range $_, $OptionsFlag := (ds "OPTIONS").options -}} # for options
@@ -43,7 +42,7 @@ resources:
 - name: catapult
   type: git
   source:
-    branch: prabal-gke-creation-via-ci
+    branch: master
     uri: https://github.com/SUSE/catapult
 
 - name: s3.kubecf-bundle
@@ -77,7 +76,7 @@ resources:
               export GKE_CRED_JSON=$PWD/gke-key.json
               export GKE_CLUSTER_NAME=ci-${BACKEND}-${random_variable}
               export CLUSTER_NAME=${GKE_CLUSTER_NAME}
-              (cd catapult; make BACKEND=$BACKEND GKE_CREDS_JSON=$GKE_CRED_JSON GKE_CLUSTER_NAME=${GKE_CLUSTER_NAME} CLUSTER_NAME=${GKE_CLUSTER_NAME})
+              (cd catapult; make BACKEND=$BACKEND GKE_CREDS_JSON=$GKE_CRED_JSON GKE_CLUSTER_NAME=${GKE_CLUSTER_NAME} CLUSTER_NAME=${GKE_CLUSTER_NAME} k8s)
               echo ${GKE_CLUSTER_NAME} > kubeconfig-pool/name
               cp catapult/build${GKE_CLUSTER_NAME}/kubeconfig kubeconfig-pool/metadata
             else
@@ -89,10 +88,6 @@ resources:
 {{- $delete_k8s := `
                   # delete k8s cluster
                   if [[ ${BACKEND} == "gke" ]]; then
-                      echo "ls"
-                      ls
-                      pwd
-                      which gcloud
                       printf "%s" '((gke-key-json))' > $PWD/gke-key.json
                       export GKE_CRED_JSON=$PWD/gke-key.json
                       export CLUSTER_NAME=$(cat pool.kube-hosts/name)
@@ -233,6 +228,7 @@ jobs:
         BACKEND: {{$Backend}}
         QUIET_OUTPUT: true
         DEFAULT_STACK: cflinuxfs3
+        DOWNLOAD_CATAPULT_DEPS: false
       run:
         path: "/bin/bash"
         args:
@@ -262,6 +258,7 @@ jobs:
             BACKEND: {{$Backend}}
             QUIET_OUTPUT: true
             DEFAULT_STACK: cflinuxfs3
+            DOWNLOAD_CATAPULT_DEPS: false
           run:
             path: "/bin/bash"
             args:
@@ -269,7 +266,7 @@ jobs:
               - |
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
-        params: {remove: pool.kube-hosts}
+        params: {remove: {{$Backend}}-pool.kube-hosts}
 {{- end }}
 
 - name: deploy-{{ $EiriniFlag }}-{{ $Backend }}-{{ $OptionsFlag }}
@@ -344,7 +341,7 @@ jobs:
             {{- end }}
             {{- print $deploy }}
   {{- if $config.create_k8s }}
-  ensure:
+  on_failure:
     do:
       - task: delete-k8s
         privileged: true
@@ -364,6 +361,7 @@ jobs:
             BACKEND: {{$Backend}}
             QUIET_OUTPUT: true
             DEFAULT_STACK: cflinuxfs3
+            DOWNLOAD_CATAPULT_DEPS: false
           run:
             path: "/bin/bash"
             args:
@@ -371,7 +369,7 @@ jobs:
               - |
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
-        params: {remove: pool.kube-hosts}
+        params: {remove: {{$Backend}}-pool.kube-hosts}
   {{- end }}
 
 - name: smoke-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
@@ -453,6 +451,7 @@ jobs:
             BACKEND: {{$Backend}}
             QUIET_OUTPUT: true
             DEFAULT_STACK: cflinuxfs3
+            DOWNLOAD_CATAPULT_DEPS: false
           run:
             path: "/bin/bash"
             args:
@@ -460,7 +459,97 @@ jobs:
               - |
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
-        params: {remove: pool.kube-hosts}
+        params: {remove: {{$Backend}}-pool.kube-hosts}
+  {{- end }}
+
+- name: cf-acceptance-tests-brain-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
+  serial_groups: [{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}]
+  public: false
+  plan:
+  - get: catapult
+  - get: {{$Backend}}-pool.kube-hosts
+    passed:
+    - smoke-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
+    trigger: true
+  - task: test-{{$EiriniFlag}}
+    privileged: true
+    timeout: 5h30m
+    input_mapping:
+      pool.kube-hosts: {{$Backend}}-pool.kube-hosts
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: splatform/catapult
+      inputs:
+      - name: catapult
+      - name: pool.kube-hosts
+      params:
+        QUIET_OUTPUT: true
+        DOWNLOAD_CATAPULT_DEPS: false
+        DEFAULT_STACK: cflinuxfs3
+{{- if eq $EiriniFlag "eirini" }}
+        ENABLE_EIRINI: true
+{{ else }}
+        ENABLE_EIRINI: false
+{{- end }}
+{{- if eq $OptionsFlag "ha" }}
+        HA: true
+{{- end }}
+{{- if eq $OptionsFlag "all" }}
+{{- print $allbells }}
+{{- end }}
+        TEST_SUITE: brain
+      run:
+        path: "/bin/bash"
+        args:
+          - -c
+          - |
+            {{- print $obtain_kubeconfig }}
+            {{- if eq $Backend "caasp4" }}
+            {{- print $import_caasp4 }}
+            {{- end }}
+            {{- if eq $Backend "eks" }}
+            {{- print $import_eks }}
+            {{- end }}
+            {{- if eq $Backend "gke" }}
+            {{- print $import_gke }}
+            {{- end }}
+            {{- if eq $Backend "aks" }}
+            {{- print $import_aks }}
+            {{- end }}
+            {{- print $test }}
+  {{- if $config.create_k8s }}
+  on_failure:
+    do:
+      - task: delete-k8s
+        privileged: true
+        timeout: 2h30m
+        input_mapping:
+          pool.kube-hosts: {{$Backend}}-pool.kube-hosts
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: splatform/catapult
+          inputs:
+          - name: catapult
+          - name: pool.kube-hosts
+          params:
+            BACKEND: {{$Backend}}
+            QUIET_OUTPUT: true
+            DEFAULT_STACK: cflinuxfs3
+            DOWNLOAD_CATAPULT_DEPS: false
+          run:
+            path: "/bin/bash"
+            args:
+              - -c
+              - |
+                {{- print $delete_k8s }}
+      - put: {{$Backend}}-pool.kube-hosts
+        params: {remove: {{$Backend}}-pool.kube-hosts}
   {{- end }}
 
 - name: cf-acceptance-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
@@ -470,7 +559,7 @@ jobs:
   - get: catapult
   - get: {{$Backend}}-pool.kube-hosts
     passed:
-    - smoke-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
+    - cf-acceptance-tests-brain-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
     trigger: true
   - task: test-{{$EiriniFlag}}
     privileged: true
@@ -542,6 +631,7 @@ jobs:
             BACKEND: {{$Backend}}
             QUIET_OUTPUT: true
             DEFAULT_STACK: cflinuxfs3
+            DOWNLOAD_CATAPULT_DEPS: false
           run:
             path: "/bin/bash"
             args:
@@ -549,7 +639,7 @@ jobs:
               - |
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
-        params: {remove: pool.kube-hosts}
+        params: {remove: {{$Backend}}-pool.kube-hosts}
   {{- end }}
 
 - name: sync-integration-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
@@ -631,6 +721,7 @@ jobs:
             BACKEND: {{$Backend}}
             QUIET_OUTPUT: true
             DEFAULT_STACK: cflinuxfs3
+            DOWNLOAD_CATAPULT_DEPS: false
           run:
             path: "/bin/bash"
             args:
@@ -638,67 +729,8 @@ jobs:
               - |
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
-        params: {remove: pool.kube-hosts}
+        params: {remove: {{$Backend}}-pool.kube-hosts}
   {{- end }}
-
-- name: cf-acceptance-tests-brain-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
-  serial_groups: [{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}]
-  public: false
-  plan:
-  - get: catapult
-  - get: {{$Backend}}-pool.kube-hosts
-    passed:
-    - sync-integration-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
-    trigger: true
-  - task: test-{{$EiriniFlag}}
-    privileged: true
-    timeout: 5h30m
-    input_mapping:
-      pool.kube-hosts: {{$Backend}}-pool.kube-hosts
-    config:
-      platform: linux
-      image_resource:
-        type: registry-image
-        source:
-          repository: splatform/catapult
-      inputs:
-      - name: catapult
-      - name: pool.kube-hosts
-      params:
-        QUIET_OUTPUT: true
-        DOWNLOAD_CATAPULT_DEPS: false
-        DEFAULT_STACK: cflinuxfs3
-{{- if eq $EiriniFlag "eirini" }}
-        ENABLE_EIRINI: true
-{{ else }}
-        ENABLE_EIRINI: false
-{{- end }}
-{{- if eq $OptionsFlag "ha" }}
-        HA: true
-{{- end }}
-{{- if eq $OptionsFlag "all" }}
-{{- print $allbells }}
-{{- end }}
-        TEST_SUITE: brain
-      run:
-        path: "/bin/bash"
-        args:
-          - -c
-          - |
-            {{- print $obtain_kubeconfig }}
-            {{- if eq $Backend "caasp4" }}
-            {{- print $import_caasp4 }}
-            {{- end }}
-            {{- if eq $Backend "eks" }}
-            {{- print $import_eks }}
-            {{- end }}
-            {{- if eq $Backend "gke" }}
-            {{- print $import_gke }}
-            {{- end }}
-            {{- if eq $Backend "aks" }}
-            {{- print $import_aks }}
-            {{- end }}
-            {{- print $test }}
 
 - name: upgrade-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
   serial_groups: [{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}]
@@ -709,7 +741,7 @@ jobs:
   - get: catapult
   - get: {{$Backend}}-pool.kube-hosts
     passed:
-    - cf-acceptance-tests-brain-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
+    - sync-integration-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
     trigger: true
   - task: upgrade-{{$EiriniFlag}}
     privileged: true
@@ -784,6 +816,7 @@ jobs:
             BACKEND: {{$Backend}}
             QUIET_OUTPUT: true
             DEFAULT_STACK: cflinuxfs3
+            DOWNLOAD_CATAPULT_DEPS: false
           run:
             path: "/bin/bash"
             args:
@@ -791,7 +824,7 @@ jobs:
               - |
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
-        params: {remove: pool.kube-hosts}
+        params: {remove: {{$Backend}}-pool.kube-hosts}
   {{- end }}
 
 - name: stratos-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
@@ -873,6 +906,7 @@ jobs:
             BACKEND: {{$Backend}}
             QUIET_OUTPUT: true
             DEFAULT_STACK: cflinuxfs3
+            DOWNLOAD_CATAPULT_DEPS: false
           run:
             path: "/bin/bash"
             args:
@@ -880,7 +914,7 @@ jobs:
               - |
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
-        params: {remove: pool.kube-hosts}
+        params: {remove: {{$Backend}}-pool.kube-hosts}
   {{- end }}
 
 {{ end }} # end eirini
