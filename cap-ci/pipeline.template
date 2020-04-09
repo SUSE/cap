@@ -79,6 +79,7 @@ resources:
             # create builfolder prepared for gke
             export BACKEND=gke
             printf "%s" '((gke-key-json))' > $PWD/gke-key.json
+            # GKE var exported here tso hijacking doesn't contain them in env
             export GKE_CRED_JSON=$PWD/gke-key.json
             export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
             make kubeconfig
@@ -87,6 +88,7 @@ resources:
 {{- $import_eks := `
             # create builfolder prepared for eks
             export BACKEND=eks
+            # AWS vars exported here so hijacking doesn't contain them in env
             export AWS_ACCESS_KEY_ID='((aws-ci-chuller-access-key-id))'
             export AWS_SECRET_ACCESS_KEY='((aws-ci-chuller-secret-access-key))'
             export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
@@ -135,7 +137,7 @@ resources:
             export DOCKER_ORG=cap-staging
             make scf-gen-config
             # deploy stratos console & metrics
-            unset DOCKER_ORG
+            unset DOCKER_ORG # consume docker images from DOCKER_ORG=cap on stratos & metrics
             make stratos metrics
 ` }}
 
@@ -195,6 +197,7 @@ jobs:
         BRAIN_INCLUDE: "{{(ds "BRAIN_INCLUDE")}}"
         BRAIN_EXCLUDE: "{{(ds "BRAIN_EXCLUDE")}}"
         QUIET_OUTPUT: true
+        DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
 {{- if eq $EiriniFlag "eirini" }}
         ENABLE_EIRINI: true
@@ -252,6 +255,7 @@ jobs:
       - name: pool.kube-hosts
       params:
         QUIET_OUTPUT: true
+        DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
 {{- if eq $EiriniFlag "eirini" }}
         ENABLE_EIRINI: true
@@ -310,6 +314,7 @@ jobs:
       - name: pool.kube-hosts
       params:
         QUIET_OUTPUT: true
+        DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
 {{- if eq $EiriniFlag "eirini" }}
         ENABLE_EIRINI: true
@@ -368,6 +373,7 @@ jobs:
       - name: pool.kube-hosts
       params:
         QUIET_OUTPUT: true
+        DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
 {{- if eq $EiriniFlag "eirini" }}
         ENABLE_EIRINI: true
@@ -426,6 +432,7 @@ jobs:
       - name: pool.kube-hosts
       params:
         QUIET_OUTPUT: true
+        DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
 {{- if eq $EiriniFlag "eirini" }}
         ENABLE_EIRINI: true
@@ -487,6 +494,7 @@ jobs:
       - name: pool.kube-hosts
       params:
         QUIET_OUTPUT: true
+        DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
 {{- if eq $EiriniFlag "eirini" }}
         ENABLE_EIRINI: true
@@ -547,6 +555,7 @@ jobs:
       - name: pool.kube-hosts
       params:
         QUIET_OUTPUT: true
+        DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
 {{- if eq $EiriniFlag "eirini" }}
         ENABLE_EIRINI: true
