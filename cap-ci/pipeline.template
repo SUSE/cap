@@ -58,6 +58,25 @@ resources:
     region_name: us-west-2
     regexp: kubecf-bundle-v(.*).tgz
 
+- name: helm-chart.stratos-chart
+  type: helm-chart
+  source:
+    chart:
+    repos:
+    - name:
+      url:
+      username:
+      password:
+
+- name: helm-chart.stratos-metrics-chart
+  type: helm-chart
+  source:
+    chart:
+    repos:
+    - name:
+      url:
+      username:
+      password:
 
 # Pool resource with kube cluster information
 {{ range $_, $Backend := (ds "BACKEND").backend -}} # for all backends
