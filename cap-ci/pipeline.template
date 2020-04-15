@@ -7,7 +7,6 @@ groups:
 {{ range $_, $Backend := (ds "BACKEND").backend -}} # for all backends
 - name: {{$Backend}}
   jobs:
-<<<<<<< HEAD
 {{ range $_, $Jobs := slice "deploy" "smoke-tests" "cf-acceptance-tests-brain" "cf-acceptance-tests" "sync-integration-tests" "upgrade" "stratos" -}} # for jobs
 {{ range $_, $EiriniFlag := (ds "EIRINI").eirini -}} # for eirini
 {{ range $_, $OptionsFlag := (ds "OPTIONS").options -}} # for options
