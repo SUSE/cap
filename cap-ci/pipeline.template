@@ -130,6 +130,7 @@ resources:
 ` }}
 
 {{- $deploy := `
+            # Attention: PWD = ___/catapult here
             # deploy kubecf from chart
             export SCF_CHART="$(readlink -f ../s3.kubecf-bundle/*.tgz)"
             export SCF_TESTGROUP=true
@@ -140,6 +141,7 @@ resources:
 ` }}
 
 {{- $test := `
+            # Attention: PWD = ___/catapult here
             # run test suites on cluster
             # See: https://github.com/SUSE/catapult/wiki/Running-SCF-tests#kubecf
             export KUBECF_TEST_SUITE="${TEST_SUITE:-smokes}"
@@ -150,6 +152,7 @@ resources:
 ` }}
 
 {{- $stratos := `
+            # Attention: PWD = ____/catapult here
             # obtain scf-config-values.yaml for stratos
             export QUIET_OUTPUT=true
             export SCF_TESTGROUP=true
@@ -164,6 +167,7 @@ resources:
 ` }}
 
 {{- $upgrade := `
+            # Attention: PWD = ___/catapult here
             # upgrade kubecf
             export SCF_CHART="$(readlink -f ../s3.kubecf-bundle/*.tgz)"
             export SCF_OPERATOR=true
