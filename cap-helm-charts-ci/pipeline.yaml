@@ -1,0 +1,44 @@
+# TODO
+
+resources:
+- name: ci
+  type: git
+  source:
+    uri: ((ci-uri))
+    branch: ((ci-branch))
+    private_key: ((ci-private-key))
+
+- name: s3.chart-bundle
+  type: s3
+  source:
+    bucket: ((bucket))
+    region_name: ((region))
+    access_key_id: ((access-key-id))
+    secret_access_key: ((secret-access-key))
+    regexp: kubecf-(.*).tgz
+
+- name: helm-charts-repo
+  type: git
+  source:
+    uri: ((helm-charts-repo-uri))
+    branch: ((helm-charts-repo-branch))
+    private_key: ((helm-charts-repo-private-key))
+
+jobs:
+- name: create_pr
+  plan:
+  - in_parallel:
+    - get: ci
+    - get: s3.chart-bundle
+    - get: helm-charts-repo
+  - do:
+    - task: create_pr
+      privileged: true
+      params:
+        GITHUB_TOKEN: ((github-token))
+        GITHUB_PRIVATE_KEY: ((github-private-key))
+        GIT_MAIL: ((github-mail))
+        GIT_USER: ((github-user))
+        CHART_BUNDLE: s3.chart-bundle
+        HELM_CHARTS_REPO: helm-charts-repo
+      file: ci/cap-helm-charts-pr/tasks/create_pr.yml
