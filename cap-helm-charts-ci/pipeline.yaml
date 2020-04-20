@@ -1,4 +1,5 @@
-# TODO
+# This pipeline is responsible for opening a PR against SUSE helm charts
+# repo for the latest kubecf and cf-operator releases.
 
 resources:
 - name: ci
@@ -6,7 +7,6 @@ resources:
   source:
     uri: ((ci-uri))
     branch: ((ci-branch))
-    private_key: ((ci-private-key))
 
 - name: s3.chart-bundle
   type: s3
