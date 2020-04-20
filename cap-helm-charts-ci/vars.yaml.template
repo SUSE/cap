@@ -1,12 +1,12 @@
 ---
 ci-uri: https://github.com/SUSE/cap.git
 ci-branch: master
-bucket: <CAP-RELEASE-BUCKET> # S3 bucket to pick the release from.
-region: <CAP-RELEASE-BUCKET-REGION> # Region of the bucket.
+bucket: cap-release-artifacts # S3 bucket to pick the release from.
+region: us-east-1 # Region of the bucket.
 access-key-id: <S3-ACCESS-KEY-ID> # Access key for the release bucket.
 secret-access-key: <S3-SECRET-ACCESS-KEY> # Secret Key for the release bucket.
-helm-charts-repo-uri: <HELM-CHART-REPO-URI> # URI for helm chart repo.
-helm-charts-repo-branch: <HELM-CHART-REPO-BRANCH> # Branch for helm chart repo.
+helm-charts-repo-uri: git@github.com:SUSE/kubernetes-charts-suse-com.git # URI for helm chart repo.
+helm-charts-repo-branch: master # Branch for helm chart repo.
 helm-charts-repo-private-key: <HELM-CHARTS-REPO-PRIVATE-KEY> # Github private key for helm chart repo.
 github-token: <GITHUB-TOKEN> # Your GitHub token.
 github-private-key: <GITHUB-PRIVATE-KEY> # Your GitHub private key.
