@@ -41,4 +41,4 @@ jobs:
         GIT_USER: ((github-user))
         CHART_BUNDLE: s3.chart-bundle
         HELM_CHARTS_REPO: helm-charts-repo
-      file: ci/cap-helm-charts-pr/tasks/create_pr.yml
+      file: ci/cap-helm-charts-ci/tasks/create_pr.yml
