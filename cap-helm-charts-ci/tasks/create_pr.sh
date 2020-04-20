@@ -51,8 +51,8 @@ rm -rf ${HELM_CHARTS_REPO}/stable/kubecf
 rm -rf ${HELM_CHARTS_REPO}/stable/cf-operator
 
 # Recursively untar bundle, kubecf and cf-operator charts.
-cap_bundle=$(ls ${CHART_BUNDLE} | grep .tgz)
-tar --to-command="tar -C "${HELM_CHARTS_REPO}"/stable/ -xzvf -" -xzvf ${CHART_BUNDLE}/*.tgz
+cap_bundle=$(find ${CHART_BUNDLE} -name "*.tgz" | cut -d "/" -f2)
+tar --to-command="tar -C ${HELM_CHARTS_REPO}/stable/ -xzvf -" -xzvf ${CHART_BUNDLE}/*.tgz
 product=$(basename "${cap_bundle}" .tgz)
 
 pushd ${HELM_CHARTS_REPO} 
