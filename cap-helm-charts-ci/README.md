@@ -8,12 +8,14 @@ This pipeline is responsible for opening a PR against SUSE helm charts repo for 
 
 1. Use the sample `vars.yaml.template` to create a file named `vars.yaml` and replace all required values.
 
-2. Make sure the concourse target is set and you are logged in.
+2. Define `${CONCOURSE_SECRETS_FILE}` with path to your `concourse-secrets.yml.gpg` in blackbox.
 
-3. Deploy or update the pipeline using the following command:
+3. Make sure the concourse target is set and you are logged in.
+
+4. Deploy or update the pipeline using the following command:
 
 ```
-fly set-pipeline -t <concourse-target> -p <name-of-the-pipeline> -c pipeline.yaml --load-vars-from=vars.yaml
+./deploy-pipeline <concourse-target> <pipeline-name>
 ```
 
 **Note:** Make sure that you update the CI URI and branch appropriately before deploying.

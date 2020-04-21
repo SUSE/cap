@@ -1,0 +1,51 @@
+#!/bin/bash
+# This script should be used instead of Concourse "fly" cli in order to deploy
+# the pipeline. It simply calls "gomplate" to render the final pipeline definition.
+# It delegated all other options to the real "fly".
+#
+# E.g. ./fly -t target set-pipeline -p cap-helm-charts-pr
+
+set -e
+
+if ! hash gomplate 2>/dev/null; then
+    echo "gomplate missing. Follow the instructions in https://docs.gomplate.ca/installing/ and install it first."
+    exit 1
+fi
+
+usage() {
+    echo "USAGE:"
+    echo "./deploy-pipeline <concourse-target> <pipeline-name>"
+}
+
+secrets_file="concourse-secrets.yaml"
+trap "rm -f $secrets_file" EXIT
+
+if [[ -z "$1" ]]; then
+    echo "Concourse target not provided."
+    usage
+    exit 1
+else
+    concourse_target=$1
+fi
+
+if [[ -z "$2" ]]; then
+    echo "Pipeline name not provided."
+    usage
+    exit 1
+else
+    pipeline_name=$2
+fi
+
+if [[ -z "${CONCOURSE_SECRETS_FILE}" ]]; then
+    echo "CONCOURSE_SECRETS_FILE not defined."
+    exit 1
+else
+    gpg --decrypt --batch ${CONCOURSE_SECRETS_FILE} >$secrets_file
+fi
+
+if [[ -f vars.yaml ]]; then
+    fly set-pipeline \
+        --target $concourse_target \
+        --pipeline $pipeline_name \
+        --config <(gomplate -V -c .=vars.yaml -d $secrets_file -f "pipeline.yaml.gomplate")
+fi
