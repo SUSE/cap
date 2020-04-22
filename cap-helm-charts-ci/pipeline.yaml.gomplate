@@ -1,0 +1,44 @@
+# This pipeline is responsible for opening a PR against SUSE helm charts
+# repo for the latest kubecf and cf-operator releases.
+---
+resources:
+- name: ci
+  type: git
+  source:
+    uri: {{ .ci_uri }}
+    branch: {{ .ci_branch }}
+
+- name: s3.chart-bundle
+  type: s3
+  source:
+    bucket: {{ .bucket }}
+    region_name: {{ .region }}
+    access_key_id: {{ index (datasource "concourse-secrets") "aws-capbot-access-key" }}
+    secret_access_key: {{ index (datasource "concourse-secrets") "aws-capbot-secret-key" }}
+    regexp: kubecf-(.*).tgz
+
+- name: helm-charts-repo
+  type: git
+  source:
+    uri: {{ .helm_charts_repo_uri }}
+    branch: {{ .helm_charts_repo_branch }}
+    private_key: {{ index (datasource "concourse-secrets") "github-private-key" | data.ToYAML | indent 3 }}
+
+jobs:
+- name: create_pr
+  plan:
+  - in_parallel:
+    - get: ci
+    - get: s3.chart-bundle
+    - get: helm-charts-repo
+  - do:
+    - task: create_pr
+      privileged: true
+      params:
+        GITHUB_TOKEN:  {{ index (datasource "concourse-secrets") "github-access-token" }}
+        GITHUB_PRIVATE_KEY:  {{ index (datasource "concourse-secrets") "github-private-key" | data.ToYAML | indent 7 }}
+        GIT_MAIL: {{ .github_mail }}
+        GIT_USER: {{ .github_user }}
+        CHART_BUNDLE: s3.chart-bundle
+        HELM_CHARTS_REPO: helm-charts-repo
+      file: ci/cap-helm-charts-ci/tasks/create_pr.yml
