@@ -39,7 +39,7 @@ fi
 
 # Setup git
 mkdir -p ~/.ssh
-ssh-keyscan -t rsa github.com | tee github-key-temp | ssh-keygen -lf -
+ssh-keyscan -t rsa github.com | tee ~/.ssh/known_hosts | ssh-keygen -lf -
 echo -e ${GITHUB_PRIVATE_KEY} | sed -E 's/(-+(BEGIN|END) OPENSSH PRIVATE KEY-+) *| +/\1\n/g' > ~/.ssh/id_ecdsa
 chmod 0600 ~/.ssh/id_ecdsa
 

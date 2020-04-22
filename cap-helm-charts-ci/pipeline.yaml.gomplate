@@ -30,6 +30,7 @@ jobs:
   - in_parallel:
     - get: ci
     - get: s3.chart-bundle
+      trigger: true
     - get: helm-charts-repo
   - do:
     - task: create_pr
