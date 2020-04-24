@@ -81,7 +81,7 @@ resources:
               export CLUSTER_NAME=${GKE_CLUSTER_NAME}
               (cd catapult; make BACKEND=$BACKEND GKE_CREDS_JSON=$GKE_CRED_JSON GKE_CLUSTER_NAME=${GKE_CLUSTER_NAME} CLUSTER_NAME=${GKE_CLUSTER_NAME} k8s)
               echo ${GKE_CLUSTER_NAME} > kubeconfig-pool/name
-              cp catapult/build${GKE_CLUSTER_NAME}/kubeconfig kubeconfig-pool/metadata
+              cp catapult/build${GKE_CLUSTER_NAME}/kubeclusterreference kubeconfig-pool/metadata
             else
               echo "CI cannot create ${BACKEND} cluster"
               exit 1
@@ -89,107 +89,112 @@ resources:
 ` }}
 
 {{- $delete_k8s := `
-                  # delete k8s cluster
-                  if [[ ${BACKEND} == "gke" ]]; then
-                      printf "%s" '((gke-key-json))' > $PWD/gke-key.json
-                      export GKE_CRED_JSON=$PWD/gke-key.json
-                      export CLUSTER_NAME=$(cat pool.kube-hosts/name)
-                      pool_file=${pool_file:-pool.kube-hosts/metadata}
-                      export GKE_CLUSTER_ZONE=$(cat ${pool_file} | grep current-context | cut -d'_' -f3)
-                      gcloud auth activate-service-account --key-file=${GKE_CRED_JSON}
-                      PROJECT=$(jq -r .project_id gke-key.json)
-                      gcloud config set project ${PROJECT}
-                      gcloud container clusters get-credentials ${CLUSTER_NAME} --zone ${GKE_CLUSTER_ZONE}
-                      gcloud -q container clusters delete ${CLUSTER_NAME} --zone ${GKE_CLUSTER_ZONE}
-                      echo "Pruning all the PV disks attached to the cluster ... "
-                      filter=$(echo ${CLUSTER_NAME} | cut -c1-18)
-                      gcloud -q compute disks delete --zone ${GKE_CLUSTER_ZONE} $(gcloud compute disks list --filter="name~'${filter}'" | grep ci-gke- | awk '{ print $1 }')
-                  fi
+                # delete k8s cluster
+                if [[ ${BACKEND} == "gke" ]]; then
+                    printf "%s" '((gke-key-json))' > $PWD/gke-key.json
+                    # GKE var exported here so hijacking doesn't contain them in env
+                    export GKE_CRED_JSON=$PWD/gke-key.json
+                    export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
+                    export GKE_CLUSTER_NAME=$(yq r ${KUBECFG} cluster-name)
+                    export GKE_CLUSTER_ZONE=$(yq r ${KUBECFG} cluster-zone)
+                    export GKE_PROJECT=$(yq r ${KUBECFG} project)
+                    info "Using creds from GKE_CRED_JSON…"
+                    gcloud auth revoke 2>/dev/null || true
+                    gcloud auth activate-service-account --project "$GKE_PROJECT" --key-file "$GKE_CRED_JSON"
+                    if [[ $(gcloud auth list  --format="value(account)" | wc -l ) -le 0 ]]; then
+                        err "GKE_CRED_JSON creds don't authenticate, aborting" && exit 1
+                    fi
+                    gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --zone ${GKE_CLUSTER_ZONE}
+                    gcloud -q container clusters delete ${GKE_CLUSTER_NAME} --zone ${GKE_CLUSTER_ZONE}
+                    echo "Pruning all the PV disks attached to the cluster ... "
+                    filter=$(echo ${GKE_CLUSTER_NAME} | cut -c1-18)
+                    gcloud -q compute disks delete --zone ${GKE_CLUSTER_ZONE} $(gcloud compute disks list --filter="name~'${filter}'" | grep ci-gke- | awk '{ print $1 }')
+                fi
 ` }}
 
 {{- $obtain_kubeconfig := `
-            # obtain kubeconfig from pool
-            pool_file=${pool_file:-pool.kube-hosts/metadata}
-            export CLUSTER_NAME=$(cat pool.kube-hosts/name)
-            cp ${pool_file} catapult/kubeconfig_$CLUSTER_NAME
-            pushd catapult
+                # obtain kubeconfig from pool
+                pool_file=${pool_file:-pool.kube-hosts/metadata}
+                export CLUSTER_NAME=$(cat pool.kube-hosts/name)
+                cp ${pool_file} catapult/kubeconfig_$CLUSTER_NAME
+                pushd catapult
 ` }}
 
 {{- $import_gke := `
-            # create builfolder prepared for gke
-            export BACKEND=gke
-            printf "%s" '((gke-key-json))' > $PWD/gke-key.json
-            # GKE var exported here tso hijacking doesn't contain them in env
-            export GKE_CRED_JSON=$PWD/gke-key.json
-            export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
-            make kubeconfig
+                # create buildfolder prepared for gke
+                export BACKEND=gke
+                printf "%s" '((gke-key-json))' > $PWD/gke-key.json
+                # GKE var exported here tso hijacking doesn't contain them in env
+                export GKE_CRED_JSON=$PWD/gke-key.json
+                export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
+                make kubeconfig
 ` }}
 
 {{- $import_eks := `
-            # create builfolder prepared for eks
-            export BACKEND=eks
-            # AWS vars exported here so hijacking doesn't contain them in env
-            export AWS_ACCESS_KEY_ID='((aws-ci-chuller-access-key-id))'
-            export AWS_SECRET_ACCESS_KEY='((aws-ci-chuller-secret-access-key))'
-            export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
-            make kubeconfig
+                # create builfolder prepared for eks
+                export BACKEND=eks
+                # AWS vars exported here so hijacking doesn't contain them in env
+                export AWS_ACCESS_KEY_ID='((aws-ci-chuller-access-key-id))'
+                export AWS_SECRET_ACCESS_KEY='((aws-ci-chuller-secret-access-key))'
+                export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
+                make kubeconfig
 ` }}
 
 {{- $import_aks := `
-            # create builfolder prepared for aks
-            export BACKEND=aks
-            export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
-            make kubeconfig
+                # create builfolder prepared for aks
+                export BACKEND=aks
+                export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
+                make kubeconfig
 ` }}
 
 {{- $import_caasp4 := `
-            # create buildfolder prepared for caasp4os
-            export BACKEND=caasp4os
-            export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
-            make kubeconfig
+                # create buildfolder prepared for caasp4os
+                export BACKEND=caasp4os
+                export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
+                make kubeconfig
 ` }}
 
 {{- $deploy := `
-            # deploy kubecf from chart
-            export SCF_CHART="$(readlink -f ../s3.kubecf-bundle/*.tgz)"
-            export SCF_TESTGROUP=true
-            export SCF_OPERATOR=true
-            export DOCKER_ORG=cap-staging
-            export QUIET_OUTPUT=true
-            make scf && make scf-login # ensure scf is there
+                # deploy kubecf from chart
+                export SCF_CHART="$(readlink -f ../s3.kubecf-bundle/*.tgz)"
+                export SCF_TESTGROUP=true
+                export SCF_OPERATOR=true
+                export DOCKER_ORG=cap-staging
+                export QUIET_OUTPUT=true
+                make scf && make scf-login # ensure scf is there
 ` }}
 
 {{- $test := `
-            # run test suites on cluster
-            # See: https://github.com/SUSE/catapult/wiki/Running-SCF-tests#kubecf
-            export KUBECF_TEST_SUITE="${TEST_SUITE:-smokes}"
-            export KUBECF_NAMESPACE="scf"
-            export SCF_TESTGROUP=true
-            export QUIET_OUTPUT=true
-            make tests-kubecf
+                # run test suites on cluster
+                # See: https://github.com/SUSE/catapult/wiki/Running-SCF-tests#kubecf
+                export KUBECF_TEST_SUITE="${TEST_SUITE:-smokes}"
+                export KUBECF_NAMESPACE="scf"
+                export SCF_TESTGROUP=true
+                export QUIET_OUTPUT=true
+                make tests-kubecf
 ` }}
 
 {{- $stratos := `
-            # obtain scf-config-values.yaml for stratos
-            export QUIET_OUTPUT=true
-            export SCF_TESTGROUP=true
-            export SCF_OPERATOR=true
-            export DOCKER_ORG=cap-staging
-            make scf-gen-config
-            # deploy stratos console & metrics
-            unset DOCKER_ORG # consume docker images from DOCKER_ORG=cap on stratos & metrics
-            make stratos metrics
+                # obtain scf-config-values.yaml for stratos
+                export QUIET_OUTPUT=true
+                export SCF_TESTGROUP=true
+                export SCF_OPERATOR=true
+                export DOCKER_ORG=cap-staging
+                make scf-gen-config
+                # deploy stratos console & metrics
+                unset DOCKER_ORG # consume docker images from DOCKER_ORG=cap on stratos & metrics
+                make stratos metrics
 ` }}
 
 {{- $upgrade := `
-            # upgrade kubecf
-            export SCF_CHART="$(readlink -f ../s3.kubecf-bundle/*.tgz)"
-            export SCF_OPERATOR=true
-            export DOCKER_ORG=cap-staging
-            export QUIET_OUTPUT=true
-            make scf-chart # this takes the same chart as the deploy step for now
-            make scf-gen-config
-            make scf-upgrade
+                # upgrade kubecf
+                export SCF_CHART="$(readlink -f ../s3.kubecf-bundle/*.tgz)"
+                export SCF_OPERATOR=true
+                export DOCKER_ORG=cap-staging
+                export QUIET_OUTPUT=true
+                make scf-chart # this takes the same chart as the deploy step for now
+                make scf-gen-config
+                make scf-upgrade
 ` }}
 
 {{- $allbells := `
@@ -267,6 +272,7 @@ jobs:
             args:
               - -c
               - |
+                {{- print $obtain_kubeconfig }}
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
         params: {remove: {{$Backend}}-pool.kube-hosts}
@@ -370,6 +376,7 @@ jobs:
             args:
               - -c
               - |
+                {{- print $obtain_kubeconfig }}
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
         params: {remove: {{$Backend}}-pool.kube-hosts}
@@ -460,6 +467,7 @@ jobs:
             args:
               - -c
               - |
+                {{- print $obtain_kubeconfig }}
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
         params: {remove: {{$Backend}}-pool.kube-hosts}
@@ -550,6 +558,7 @@ jobs:
             args:
               - -c
               - |
+                {{- print $obtain_kubeconfig }}
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
         params: {remove: {{$Backend}}-pool.kube-hosts}
@@ -640,6 +649,7 @@ jobs:
             args:
               - -c
               - |
+                {{- print $obtain_kubeconfig }}
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
         params: {remove: {{$Backend}}-pool.kube-hosts}
@@ -730,6 +740,7 @@ jobs:
             args:
               - -c
               - |
+                {{- print $obtain_kubeconfig }}
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
         params: {remove: {{$Backend}}-pool.kube-hosts}
@@ -825,6 +836,7 @@ jobs:
             args:
               - -c
               - |
+                {{- print $obtain_kubeconfig }}
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
         params: {remove: {{$Backend}}-pool.kube-hosts}
@@ -915,6 +927,7 @@ jobs:
             args:
               - -c
               - |
+                {{- print $obtain_kubeconfig }}
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
         params: {remove: {{$Backend}}-pool.kube-hosts}
