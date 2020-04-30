@@ -1,30 +1,29 @@
 # Defining datasources.
-{{ $config := (datasource "config") }}
-
+{{- $config := (datasource "config") }}
 groups:
-{{ range $backend := $config.backends }}
+{{- range $backend, $enabled := $config.backends }}{{ if $enabled }}
 - name: {{ $backend }}
   jobs:
-    {{ range $job :=  $config.jobs }}
-    {{ range $scheduler := $config.schedulers }}
-    {{ range $option := $config.options }}
+    {{- range $job, $enabled :=  $config.jobs }}{{ if $enabled }}
+    {{- range $scheduler, $enabled := $config.schedulers }}{{ if $enabled }}
+    {{- range $option, $enabled := $config.options }}{{ if $enabled }}
     - {{ $job }}-{{ $scheduler }}-{{ $backend }}-{{ $option }}
-    {{ end }}
-    {{ end }}
-    {{ end }}
-    {{ end }}
+    {{- end }}{{ end }}
+    {{- end }}{{ end }}
+    {{- end }}{{ end }}
+{{ end }}{{ end }}
 
 - name: ALL
   jobs:
-    {{ range $backend := $config.backends }}
-    {{ range $job :=  $config.jobs }}
-    {{ range $scheduler := $config.schedulers }}
-    {{ range $option := $config.options }}
+    {{- range $backend, $enabled := $config.backends }}{{ if $enabled }}
+    {{- range $job, $enabled :=  $config.jobs }}{{ if $enabled }}
+    {{- range $scheduler, $enabled := $config.schedulers }}{{ if $enabled }}
+    {{- range $option, $enabled := $config.options }}{{ if $enabled }}
     - {{ $job }}-{{ $scheduler }}-{{ $backend }}-{{ $option }}
-    {{ end }}
-    {{ end }}
-    {{ end }}
-    {{ end }}
+    {{- end }}{{ end }}
+    {{- end }}{{ end }}
+    {{- end }}{{ end }}
+    {{- end }}{{ end }}
 
 resource_types:
 - name: pull-request
@@ -76,7 +75,7 @@ resources:
       url: http://opensource.suse.com/stratos-metrics/
 
 # Pool resource with kube cluster information
-{{ range $backend := $config.backends }}
+{{- range $backend, $enabled := $config.backends }}{{ if $enabled }}
 - name: {{ $backend }}-pool.kube-hosts
   type: pool
   source:
@@ -84,7 +83,7 @@ resources:
     private_key: ((github-private-key))
     branch: {{ $backend }}-kube-hosts
     pool: {{ $backend }}-kube-hosts
-{{end}}
+{{- end }}{{ end }}
 
 {{ $pipelineName := .Env.PIPELINE }}
 
@@ -190,9 +189,9 @@ resources:
 ` }}
 
 jobs:
-{{ range $backend := $config.backends }}
-{{ range $option := $config.options }}
-{{ range $scheduler := $config.schedulers }}
+{{- range $backend, $enabled :=  $config.backends }}{{ if $enabled }}
+{{- range $option, $enabled := $config.options }}{{ if $enabled }}
+{{- range $scheduler, $enabled := $config.schedulers }}{{ if $enabled }}
 
 # {{ $backend }}-{{ $option }}
 
@@ -225,10 +224,10 @@ jobs:
       - name: s3.kubecf-bundle
       - name: pool.kube-hosts
       params:
-        BRAIN_VERBOSE: {{ $config.BRAIN.VERBOSE }}
-        BRAIN_INORDER: {{ $config.BRAIN.INORDER }}
-        BRAIN_INCLUDE: "{{ $config.BRAIN.INCLUDE }}"
-        BRAIN_EXCLUDE: "{{ $config.BRAIN.EXCLUDE }}"
+        BRAIN_VERBOSE: {{ $config.brain.verbose }}
+        BRAIN_INORDER: {{ $config.brain.inorder }}
+        BRAIN_INCLUDE: "{{ $config.brain.include }}"
+        BRAIN_EXCLUDE: "{{ $config.brain.exclude }}"
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
@@ -626,6 +625,6 @@ jobs:
             {{- end }}
             {{- print $stratos }}
 
-{{ end }} # end eirini
-{{ end }} # end options
-{{ end }} # end backend
+{{- end }}{{ end }} # end eirini
+{{- end }}{{ end }} # end options
+{{- end }}{{ end }} # end backend
