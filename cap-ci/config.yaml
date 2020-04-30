@@ -1,0 +1,30 @@
+jobs:
+  - deploy
+  - smoke-tests
+  - cf-acceptance-tests-brain
+  - cf-acceptance-tests
+  - sync-integration-tests
+  - upgrade
+  - stratos
+backends:
+  - caasp4
+  - aks
+  - gke
+  - eks
+options:
+  - sa
+  - ha
+  - all
+schedulers:
+  - diego
+  - eirini
+
+catapult:
+  uri: https://github.com/SUSE/catapult
+  branch: master
+
+BRAIN:
+  VERBOSE: false
+  INORDER: false
+  INCLUDE:
+  EXCLUDE:

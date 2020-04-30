@@ -1,29 +1,30 @@
----
+# Defining datasources.
+{{ $config := (datasource "config") }}
 
 groups:
-{{ range $_, $Backend := (ds "BACKEND").backend -}} # for all backends
-- name: {{$Backend}}
+{{ range $backend := $config.backends }}
+- name: {{ $backend }}
   jobs:
-{{ range $_, $Jobs := slice "deploy" "smoke-tests" "cf-acceptance-tests-brain" "cf-acceptance-tests" "sync-integration-tests" "upgrade" "stratos" -}} # for jobs
-{{ range $_, $EiriniFlag := (ds "EIRINI").eirini -}} # for eirini
-{{ range $_, $OptionsFlag := (ds "OPTIONS").options -}} # for options
-    - {{$Jobs}}-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
-{{ end }} # end jobs
-{{ end }} # end eirini
-{{ end }} # end options
-{{ end }} # end backend
+    {{ range $job :=  $config.jobs }}
+    {{ range $scheduler := $config.schedulers }}
+    {{ range $option := $config.options }}
+    - {{ $job }}-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+    {{ end }}
+    {{ end }}
+    {{ end }}
+    {{ end }}
+
 - name: ALL
   jobs:
-{{ range $_, $Backend := (ds "BACKEND").backend -}} # for all backends
-{{ range $_, $Jobs := slice "deploy" "smoke-tests" "cf-acceptance-tests-brain" "cf-acceptance-tests" "sync-integration-tests" "upgrade" "stratos" -}} # for jobs
-{{ range $_, $EiriniFlag := (ds "EIRINI").eirini -}} # for eirini
-{{ range $_, $OptionsFlag := (ds "OPTIONS").options -}} # for options
-    - {{$Jobs}}-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
-{{ end }} # end jobs
-{{ end }} # end eirini
-{{ end }} # end options
-{{ end }} # end backend
-
+    {{ range $backend := $config.backends }}
+    {{ range $job :=  $config.jobs }}
+    {{ range $scheduler := $config.schedulers }}
+    {{ range $option := $config.options }}
+    - {{ $job }}-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+    {{ end }}
+    {{ end }}
+    {{ end }}
+    {{ end }}
 
 resource_types:
 - name: pull-request
@@ -46,8 +47,8 @@ resources:
 - name: catapult
   type: git
   source:
-    branch: master
-    uri: https://github.com/SUSE/catapult
+    branch: {{ $config.catapult.branch }}
+    uri: {{ $config.catapult.uri }}
 
 - name: s3.kubecf-bundle
   type: s3
@@ -75,14 +76,14 @@ resources:
       url: http://opensource.suse.com/stratos-metrics/
 
 # Pool resource with kube cluster information
-{{ range $_, $Backend := (ds "BACKEND").backend -}} # for all backends
-- name: {{$Backend}}-pool.kube-hosts
+{{ range $backend := $config.backends }}
+- name: {{ $backend }}-pool.kube-hosts
   type: pool
   source:
     uri: git@github.com:SUSE/cf-ci-pools.git
     private_key: ((github-private-key))
-    branch: {{$Backend}}-kube-hosts
-    pool: {{$Backend}}-kube-hosts
+    branch: {{ $backend }}-kube-hosts
+    pool: {{ $backend }}-kube-hosts
 {{end}}
 
 {{ $pipelineName := .Env.PIPELINE }}
@@ -189,15 +190,13 @@ resources:
 ` }}
 
 jobs:
-{{ range $_, $Backend := (ds "BACKEND").backend -}} # for all backends
+{{ range $backend := $config.backends }}
+{{ range $option := $config.options }}
+{{ range $scheduler := $config.schedulers }}
 
-{{ range $_, $OptionsFlag := (ds "OPTIONS").options -}} # for options
+# {{ $backend }}-{{ $option }}
 
-{{ range $_, $EiriniFlag := (ds "EIRINI").eirini -}} # for eirini
-
-# {{$Backend}}-{{$OptionsFlag}}
-
-- name: deploy-{{ $EiriniFlag }}-{{ $Backend }}-{{ $OptionsFlag }}
+- name: deploy-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   public: false
   plan:
   - get: s3.kubecf-bundle
@@ -207,14 +206,14 @@ jobs:
   - get: helm-chart.stratos-metrics-chart
     trigger: true
   - get: catapult
-  - put: {{$Backend}}-pool.kube-hosts
+  - put: {{ $backend }}-pool.kube-hosts
     params: {acquire: true}
     timeout: 2m
   - task: deploy
     privileged: true
     timeout: 2h30m
     input_mapping:
-      pool.kube-hosts: {{$Backend}}-pool.kube-hosts
+      pool.kube-hosts: {{ $backend }}-pool.kube-hosts
     config:
       platform: linux
       image_resource:
@@ -226,22 +225,22 @@ jobs:
       - name: s3.kubecf-bundle
       - name: pool.kube-hosts
       params:
-        BRAIN_VERBOSE: {{(ds "BRAIN_VERBOSE")}}
-        BRAIN_INORDER: {{(ds "BRAIN_INORDER")}}
-        BRAIN_INCLUDE: "{{(ds "BRAIN_INCLUDE")}}"
-        BRAIN_EXCLUDE: "{{(ds "BRAIN_EXCLUDE")}}"
+        BRAIN_VERBOSE: {{ $config.BRAIN.VERBOSE }}
+        BRAIN_INORDER: {{ $config.BRAIN.INORDER }}
+        BRAIN_INCLUDE: "{{ $config.BRAIN.INCLUDE }}"
+        BRAIN_EXCLUDE: "{{ $config.BRAIN.EXCLUDE }}"
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
-{{- if eq $EiriniFlag "eirini" }}
+{{- if eq $scheduler "eirini" }}
         ENABLE_EIRINI: true
 {{ else }}
         ENABLE_EIRINI: false
 {{- end }}
-{{- if eq $OptionsFlag "ha" }}
+{{- if eq $option "ha" }}
         HA: true
 {{- end }}
-{{- if eq $OptionsFlag "all" }}
+{{- if eq $option "all" }}
 {{- print $allbells }}
 {{- end }}
       run:
@@ -250,34 +249,34 @@ jobs:
           - -c
           - |
             {{- print $obtain_kubeconfig }}
-            {{- if eq $Backend "caasp4" }}
+            {{- if eq $backend "caasp4" }}
             {{- print $import_caasp4 }}
             {{- end }}
-            {{- if eq $Backend "eks" }}
+            {{- if eq $backend "eks" }}
             {{- print $import_eks }}
             {{- end }}
-            {{- if eq $Backend "gke" }}
+            {{- if eq $backend "gke" }}
             {{- print $import_gke }}
             {{- end }}
-            {{- if eq $Backend "aks" }}
+            {{- if eq $backend "aks" }}
             {{- print $import_aks }}
             {{- end }}
             {{- print $deploy }}
 
-- name: smoke-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
-  serial_groups: [{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}]
+- name: smoke-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
   public: false
   plan:
   - get: catapult
-  - get: {{$Backend}}-pool.kube-hosts
+  - get: {{ $backend }}-pool.kube-hosts
     passed:
-    - deploy-{{ $EiriniFlag }}-{{ $Backend }}-{{ $OptionsFlag }}
+    - deploy-{{ $scheduler }}-{{ $backend }}-{{ $option }}
     trigger: true
-  - task: test-{{$EiriniFlag}}
+  - task: test-{{ $scheduler }}
     privileged: true
     timeout: 1h30m
     input_mapping:
-      pool.kube-hosts: {{$Backend}}-pool.kube-hosts
+      pool.kube-hosts: {{ $backend }}-pool.kube-hosts
     config:
       platform: linux
       image_resource:
@@ -291,15 +290,15 @@ jobs:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
-{{- if eq $EiriniFlag "eirini" }}
+{{- if eq $scheduler "eirini" }}
         ENABLE_EIRINI: true
 {{ else }}
         ENABLE_EIRINI: false
 {{- end }}
-{{- if eq $OptionsFlag "ha" }}
+{{- if eq $option "ha" }}
         HA: true
 {{- end }}
-{{- if eq $OptionsFlag "all" }}
+{{- if eq $option "all" }}
 {{- print $allbells }}
 {{- end }}
         TEST_SUITE: smokes
@@ -309,34 +308,34 @@ jobs:
           - -c
           - |
             {{- print $obtain_kubeconfig }}
-            {{- if eq $Backend "caasp4" }}
+            {{- if eq $backend "caasp4" }}
             {{- print $import_caasp4 }}
             {{- end }}
-            {{- if eq $Backend "eks" }}
+            {{- if eq $backend "eks" }}
             {{- print $import_eks }}
             {{- end }}
-            {{- if eq $Backend "gke" }}
+            {{- if eq $backend "gke" }}
             {{- print $import_gke }}
             {{- end }}
-            {{- if eq $Backend "aks" }}
+            {{- if eq $backend "aks" }}
             {{- print $import_aks }}
             {{- end }}
             {{- print $test }}
 
-- name: cf-acceptance-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
-  serial_groups: [{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}]
+- name: cf-acceptance-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
   public: false
   plan:
   - get: catapult
-  - get: {{$Backend}}-pool.kube-hosts
+  - get: {{ $backend }}-pool.kube-hosts
     passed:
-    - smoke-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
+    - smoke-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
     trigger: true
-  - task: test-{{$EiriniFlag}}
+  - task: test-{{ $scheduler }}
     privileged: true
     timeout: 5h30m
     input_mapping:
-      pool.kube-hosts: {{$Backend}}-pool.kube-hosts
+      pool.kube-hosts: {{ $backend }}-pool.kube-hosts
     config:
       platform: linux
       image_resource:
@@ -350,15 +349,15 @@ jobs:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
-{{- if eq $EiriniFlag "eirini" }}
+{{- if eq $scheduler "eirini" }}
         ENABLE_EIRINI: true
 {{ else }}
         ENABLE_EIRINI: false
 {{- end }}
-{{- if eq $OptionsFlag "ha" }}
+{{- if eq $option "ha" }}
         HA: true
 {{- end }}
-{{- if eq $OptionsFlag "all" }}
+{{- if eq $option "all" }}
 {{- print $allbells }}
 {{- end }}
         TEST_SUITE: cats
@@ -368,34 +367,34 @@ jobs:
           - -c
           - |
             {{- print $obtain_kubeconfig}}
-            {{- if eq $Backend "caasp4" }}
+            {{- if eq $backend "caasp4" }}
             {{- print $import_caasp4 }}
             {{- end }}
-            {{- if eq $Backend "eks" }}
+            {{- if eq $backend "eks" }}
             {{- print $import_eks }}
             {{- end }}
-            {{- if eq $Backend "gke" }}
+            {{- if eq $backend "gke" }}
             {{- print $import_gke }}
             {{- end }}
-            {{- if eq $Backend "aks" }}
+            {{- if eq $backend "aks" }}
             {{- print $import_aks }}
             {{- end }}
             {{- print $test }}
 
-- name: sync-integration-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
-  serial_groups: [{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}]
+- name: sync-integration-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
   public: false
   plan:
   - get: catapult
-  - get: {{$Backend}}-pool.kube-hosts
+  - get: {{ $backend }}-pool.kube-hosts
     passed:
-    - cf-acceptance-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
+    - cf-acceptance-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
     trigger: true
-  - task: test-{{$EiriniFlag}}
+  - task: test-{{ $scheduler }}
     privileged: true
     timeout: 5h30m
     input_mapping:
-      pool.kube-hosts: {{$Backend}}-pool.kube-hosts
+      pool.kube-hosts: {{ $backend }}-pool.kube-hosts
     config:
       platform: linux
       image_resource:
@@ -409,15 +408,15 @@ jobs:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
-{{- if eq $EiriniFlag "eirini" }}
+{{- if eq $scheduler "eirini" }}
         ENABLE_EIRINI: true
 {{ else }}
         ENABLE_EIRINI: false
 {{- end }}
-{{- if eq $OptionsFlag "ha" }}
+{{- if eq $option "ha" }}
         HA: true
 {{- end }}
-{{- if eq $OptionsFlag "all" }}
+{{- if eq $option "all" }}
 {{- print $allbells }}
 {{- end }}
         TEST_SUITE: sits
@@ -427,34 +426,34 @@ jobs:
           - -c
           - |
             {{- print $obtain_kubeconfig }}
-            {{- if eq $Backend "caasp4" }}
+            {{- if eq $backend "caasp4" }}
             {{- print $import_caasp4 }}
             {{- end }}
-            {{- if eq $Backend "eks" }}
+            {{- if eq $backend "eks" }}
             {{- print $import_eks }}
             {{- end }}
-            {{- if eq $Backend "gke" }}
+            {{- if eq $backend "gke" }}
             {{- print $import_gke }}
             {{- end }}
-            {{- if eq $Backend "aks" }}
+            {{- if eq $backend "aks" }}
             {{- print $import_aks }}
             {{- end }}
             {{- print $test }}
 
-- name: cf-acceptance-tests-brain-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
-  serial_groups: [{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}]
+- name: cf-acceptance-tests-brain-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
   public: false
   plan:
   - get: catapult
-  - get: {{$Backend}}-pool.kube-hosts
+  - get: {{ $backend }}-pool.kube-hosts
     passed:
-    - sync-integration-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
+    - sync-integration-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
     trigger: true
-  - task: test-{{$EiriniFlag}}
+  - task: test-{{ $scheduler }}
     privileged: true
     timeout: 5h30m
     input_mapping:
-      pool.kube-hosts: {{$Backend}}-pool.kube-hosts
+      pool.kube-hosts: {{ $backend }}-pool.kube-hosts
     config:
       platform: linux
       image_resource:
@@ -468,15 +467,15 @@ jobs:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
-{{- if eq $EiriniFlag "eirini" }}
+{{- if eq $scheduler "eirini" }}
         ENABLE_EIRINI: true
 {{ else }}
         ENABLE_EIRINI: false
 {{- end }}
-{{- if eq $OptionsFlag "ha" }}
+{{- if eq $option "ha" }}
         HA: true
 {{- end }}
-{{- if eq $OptionsFlag "all" }}
+{{- if eq $option "all" }}
 {{- print $allbells }}
 {{- end }}
         TEST_SUITE: brain
@@ -486,36 +485,36 @@ jobs:
           - -c
           - |
             {{- print $obtain_kubeconfig }}
-            {{- if eq $Backend "caasp4" }}
+            {{- if eq $backend "caasp4" }}
             {{- print $import_caasp4 }}
             {{- end }}
-            {{- if eq $Backend "eks" }}
+            {{- if eq $backend "eks" }}
             {{- print $import_eks }}
             {{- end }}
-            {{- if eq $Backend "gke" }}
+            {{- if eq $backend "gke" }}
             {{- print $import_gke }}
             {{- end }}
-            {{- if eq $Backend "aks" }}
+            {{- if eq $backend "aks" }}
             {{- print $import_aks }}
             {{- end }}
             {{- print $test }}
 
-- name: upgrade-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
-  serial_groups: [{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}]
+- name: upgrade-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
   public: false
   plan:
   - get: s3.kubecf-bundle
     trigger: false
   - get: catapult
-  - get: {{$Backend}}-pool.kube-hosts
+  - get: {{ $backend }}-pool.kube-hosts
     passed:
-    - cf-acceptance-tests-brain-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
+    - cf-acceptance-tests-brain-{{ $scheduler }}-{{ $backend }}-{{ $option }}
     trigger: true
-  - task: upgrade-{{$EiriniFlag}}
+  - task: upgrade-{{ $scheduler }}
     privileged: true
     timeout: 5h30m
     input_mapping:
-      pool.kube-hosts: {{$Backend}}-pool.kube-hosts
+      pool.kube-hosts: {{ $backend }}-pool.kube-hosts
     config:
       platform: linux
       image_resource:
@@ -530,56 +529,56 @@ jobs:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
-{{- if eq $EiriniFlag "eirini" }}
+{{- if eq $scheduler "eirini" }}
         ENABLE_EIRINI: true
 {{ else }}
         ENABLE_EIRINI: false
 {{- end }}
-{{- if eq $OptionsFlag "ha" }}
+{{- if eq $option "ha" }}
         HA: true
 {{- end }}
-{{- if eq $OptionsFlag "all" }}
+{{- if eq $option "all" }}
 {{- print $allbells }}
 {{- end }}
         TEST_SUITE: cats
         TEST_SUITE: cats
-        BACKEND: {{$Backend}}
+        BACKEND: {{ $backend }}
       run:
         path: "/bin/bash"
         args:
           - -c
           - |
             {{- print $obtain_kubeconfig }}
-            {{- if eq $Backend "caasp4" }}
+            {{- if eq $backend "caasp4" }}
             {{- print $import_caasp4 }}
             {{- end }}
-            {{- if eq $Backend "eks" }}
+            {{- if eq $backend "eks" }}
             {{- print $import_eks }}
             {{- end }}
-            {{- if eq $Backend "gke" }}
+            {{- if eq $backend "gke" }}
             {{- print $import_gke }}
             {{- end }}
-            {{- if eq $Backend "aks" }}
+            {{- if eq $backend "aks" }}
             {{- print $import_aks }}
             {{- end }}
             {{- print $upgrade }}
 
-- name: stratos-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
-  serial_groups: [{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}]
+- name: stratos-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
   public: false
   plan:
   - get: catapult
   - get: helm-chart.stratos-chart
   - get: helm-chart.stratos-metrics-chart
-  - get: {{$Backend}}-pool.kube-hosts
+  - get: {{ $backend }}-pool.kube-hosts
     passed:
-    - upgrade-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
+    - upgrade-{{ $scheduler }}-{{ $backend }}-{{ $option }}
     trigger: true
-  - task: stratos-{{$EiriniFlag}}
+  - task: stratos-{{ $scheduler }}
     privileged: true
     timeout: 5h30m
     input_mapping:
-      pool.kube-hosts: {{$Backend}}-pool.kube-hosts
+      pool.kube-hosts: {{ $backend }}-pool.kube-hosts
     config:
       platform: linux
       image_resource:
@@ -595,15 +594,15 @@ jobs:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
-{{- if eq $EiriniFlag "eirini" }}
+{{- if eq $scheduler "eirini" }}
         ENABLE_EIRINI: true
 {{ else }}
         ENABLE_EIRINI: false
 {{- end }}
-{{- if eq $OptionsFlag "ha" }}
+{{- if eq $option "ha" }}
         HA: true
 {{- end }}
-{{- if eq $OptionsFlag "all" }}
+{{- if eq $option "all" }}
 {{- print $allbells }}
 {{- end }}
         TEST_SUITE: cats
@@ -613,16 +612,16 @@ jobs:
           - -c
           - |
             {{- print $obtain_kubeconfig }}
-            {{- if eq $Backend "caasp4" }}
+            {{- if eq $backend "caasp4" }}
             {{- print $import_caasp4 }}
             {{- end }}
-            {{- if eq $Backend "eks" }}
+            {{- if eq $backend "eks" }}
             {{- print $import_eks }}
             {{- end }}
-            {{- if eq $Backend "gke" }}
+            {{- if eq $backend "gke" }}
             {{- print $import_gke }}
             {{- end }}
-            {{- if eq $Backend "aks" }}
+            {{- if eq $backend "aks" }}
             {{- print $import_aks }}
             {{- end }}
             {{- print $stratos }}

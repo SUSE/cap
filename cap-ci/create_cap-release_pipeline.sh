@@ -1,28 +1,40 @@
 #!/bin/bash
-set -x
+
+set -e
 
 # NOTE for now, add your cluster's kubeconfig in git@github.com:SUSE/cf-ci-pools.git on branch ${BACKEND}-kube-hosts in unclaimed folder
 # Usage example: PIPELINE=name-demo-release BACKEND='backend: [ caasp4, eks ]' OPTIONS='options: [ sa ]' EIRINI='eirini: [ diego ]' ./create_cap-release_pipeline.sh
 
-export PIPELINE="${PIPELINE-cap-release}"
+if ! hash gomplate 2>/dev/null; then
+    echo "gomplate missing. Follow the instructions in https://docs.gomplate.ca/installing/ and install it first."
+    exit 1
+fi
 
-rm "$PIPELINE".yaml 2>/dev/null || true
-export BACKEND="${BACKEND:-backend: [ caasp4, aks, gke, eks ]}"
-export OPTIONS="${OPTIONS:-options: [ sa, ha, all ]}"
-export EIRINI="${EIRINI:-eirini: [ diego, eirini ]}"
+usage() {
+    echo "USAGE:"
+    echo "./create_cap-release_pipeline.sh <concourse-target> <pipeline-name>"
+}
 
-export BRAIN_VERBOSE="${BRAIN_VERBOSE:-false}"
-export BRAIN_INORDER="${BRAIN_INORDER:-false}"
-export BRAIN_INCLUDE="${BRAIN_INCLUDE:-}"
-export BRAIN_EXCLUDE="${BRAIN_EXCLUDE:-}"
+if [[ -z "$1" ]]; then
+    echo "Concourse target not provided."
+    usage
+    exit 1
+else
+    target=$1
+fi
 
-gomplate -d 'BACKEND=env:///BACKEND?type=application/yaml' \
-         -d 'OPTIONS=env:///OPTIONS?type=application/yaml' \
-         -d 'EIRINI=env:///EIRINI?type=application/yaml' \
-         -d 'BRAIN_VERBOSE=env:///BRAIN_VERBOSE' \
-         -d 'BRAIN_INORDER=env:///BRAIN_INORDER' \
-         -d 'BRAIN_INCLUDE=env:///BRAIN_INCLUDE' \
-         -d 'BRAIN_EXCLUDE=env:///BRAIN_EXCLUDE' \
-         -f pipeline.template > "$PIPELINE".yaml
+if [[ -z "$2" ]]; then
+    echo "Pipeline name not provided."
+    usage
+    exit 1
+else
+    export PIPELINE=$2
+fi
 
-fly -t concourse.suse.dev sp -c "$PIPELINE".yaml -p "$PIPELINE"
+fly_args=(
+    "--target=${target}"
+    "set-pipeline"
+    "--pipeline=${PIPELINE}"
+)
+
+fly "${fly_args[@]}" --config <(gomplate --verbose --datasource config.yaml --file pipeline.template)
