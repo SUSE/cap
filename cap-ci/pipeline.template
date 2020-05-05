@@ -188,6 +188,14 @@ resources:
         AUTOSCALER: true
 ` }}
 
+{{- $clean := `
+            # Attention: PWD = ___/catapult here
+            # cleanup
+            export QUIET_OUTPUT=true
+            env | sort | sed -e 's|^|CONFIGURATION: |'
+            make scf-clean
+` }}
+
 jobs:
 {{- range $backend, $enabled :=  $config.backends }}{{ if $enabled }}
 {{- range $option, $enabled := $config.options }}{{ if $enabled }}
@@ -195,6 +203,7 @@ jobs:
 
 # {{ $backend }}-{{ $option }}
 
+{{ if index $config.jobs "deploy" }}
 - name: deploy-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   public: false
   plan:
@@ -261,7 +270,9 @@ jobs:
             {{- print $import_aks }}
             {{- end }}
             {{- print $deploy }}
+{{ end }}
 
+{{ if index $config.jobs "smoke-tests" }}
 - name: smoke-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
   public: false
@@ -320,7 +331,9 @@ jobs:
             {{- print $import_aks }}
             {{- end }}
             {{- print $test }}
+{{ end }}
 
+{{ if index $config.jobs "cf-acceptance-tests" }}
 - name: cf-acceptance-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
   public: false
@@ -379,7 +392,9 @@ jobs:
             {{- print $import_aks }}
             {{- end }}
             {{- print $test }}
+{{ end }}
 
+{{ if index $config.jobs "sync-integration-tests" }}
 - name: sync-integration-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
   public: false
@@ -438,7 +453,9 @@ jobs:
             {{- print $import_aks }}
             {{- end }}
             {{- print $test }}
+{{ end }}
 
+{{ if index $config.jobs "cf-acceptance-tests-brain" }}
 - name: cf-acceptance-tests-brain-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
   public: false
@@ -497,7 +514,9 @@ jobs:
             {{- print $import_aks }}
             {{- end }}
             {{- print $test }}
+{{ end }}
 
+{{ if index $config.jobs "upgrade" }}
 - name: upgrade-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
   public: false
@@ -561,7 +580,9 @@ jobs:
             {{- print $import_aks }}
             {{- end }}
             {{- print $upgrade }}
+{{ end }}
 
+{{ if index $config.jobs "stratos" }}
 - name: stratos-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
   public: false
@@ -624,6 +645,58 @@ jobs:
             {{- print $import_aks }}
             {{- end }}
             {{- print $stratos }}
+{{ end }}
+
+{{ if index $config.jobs "clean" }}
+- name: clean-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
+  public: false
+  plan:
+  - get: catapult
+  - get: {{ $backend }}-pool.kube-hosts
+    passed:
+    #TODO: change this to stratos
+    - smoke-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+    trigger: true
+  - task: clean-{{ $scheduler }}
+    privileged: true
+    timeout: 5h30m
+    input_mapping:
+      pool.kube-hosts: {{ $backend }}-pool.kube-hosts
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: splatform/catapult
+      inputs:
+      - name: catapult
+      - name: pool.kube-hosts
+      params:
+        QUIET_OUTPUT: true
+        DOWNLOAD_CATAPULT_DEPS: false
+      run:
+        path: "/bin/bash"
+        args:
+          - -c
+          - |
+            {{- print $obtain_kubeconfig }}
+            {{- if eq $backend "caasp4" }}
+            {{- print $import_caasp4 }}
+            {{- end }}
+            {{- if eq $backend "eks" }}
+            {{- print $import_eks }}
+            {{- end }}
+            {{- if eq $backend "gke" }}
+            {{- print $import_gke }}
+            {{- end }}
+            {{- if eq $backend "aks" }}
+            {{- print $import_aks }}
+            {{- end }}
+            {{- print $clean }}
+  - put: {{ $backend }}-pool.kube-hosts
+    params: {release: {{ $backend }}-pool.kube-hosts}
+{{ end }}
 
 {{- end }}{{ end }} # end eirini
 {{- end }}{{ end }} # end options

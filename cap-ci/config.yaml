@@ -1,23 +1,24 @@
 jobs:
   deploy: true
   smoke-tests: true
-  cf-acceptance-tests-brain: true
-  cf-acceptance-tests: true
-  sync-integration-tests: true
-  upgrade: true
-  stratos: true
+  cf-acceptance-tests-brain: false
+  cf-acceptance-tests: false
+  sync-integration-tests: false
+  upgrade: false
+  stratos: false
+  clean: true
 backends:
-  caasp4: true
-  aks: true
+  caasp4: false
+  aks: false
   gke: true
-  eks: true
+  eks: false
 options:
   sa: true
-  ha: true
-  all: true
+  ha: false
+  all: false
 schedulers:
   diego: true
-  eirini: true
+  eirini: false
 catapult:
   uri: https://github.com/SUSE/catapult
   branch: master
