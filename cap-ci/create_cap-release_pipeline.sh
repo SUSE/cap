@@ -23,7 +23,7 @@ gomplate -d 'BACKEND=env:///BACKEND?type=application/yaml' \
          -d 'BRAIN_INORDER=env:///BRAIN_INORDER' \
          -d 'BRAIN_INCLUDE=env:///BRAIN_INCLUDE' \
          -d 'BRAIN_EXCLUDE=env:///BRAIN_EXCLUDE' \
-         -t config.yaml \
+         -d config.yaml \
          -f pipeline.template > "$PIPELINE".yaml
 
 fly -t concourse.suse.dev sp -c "$PIPELINE".yaml -p "$PIPELINE"

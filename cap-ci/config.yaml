@@ -1,5 +1,1 @@
-{{ define "config" }}
-{
-  "create_k8s": true
-}
-{{ end }}
+create_k8s: true

@@ -1,5 +1,6 @@
 ---
-{{ $config := ( tmpl.Exec "config" ) | data.JSON}}
+# Defining config.yaml datasources.
+{{ $config := (datasource "config") }}
 
 {{- if not $config.create_k8s }}
 
@@ -78,6 +79,16 @@ resources:
     - name: stratos-metrics
       url: http://opensource.suse.com/stratos-metrics/
 
+{{- if $config.create_k8s }}
+- name: tfstate-pool
+  type: pool
+  source:
+    uri: git@github.com:SUSE/cf-ci-pools.git
+    private_key: ((github-private-key))
+    branch: tfstate
+    pool: tfstate
+{{- end}}
+
 # Pool resource with kube cluster information
 {{ range $_, $Backend := (ds "BACKEND").backend -}} # for all backends
 - name: {{$Backend}}-pool.kube-hosts
@@ -94,14 +105,19 @@ resources:
 {{- $create_k8s := `
             # create k8s cluster
             export random_variable=$(hexdump -n 8 -e '2/4 "%08x"' /dev/urandom)
+            export AWS_ACCESS_KEY_ID='((aws-ci-chuller-access-key-id))'
+            export AWS_SECRET_ACCESS_KEY='((aws-ci-chuller-secret-access-key))'
             if [[ ${BACKEND} == "gke" ]]; then
               printf "%s" '((gke-key-json))' > $PWD/gke-key.json
               export GKE_CRED_JSON=$PWD/gke-key.json
               export GKE_CLUSTER_NAME=ci-${BACKEND}-${random_variable}
               export CLUSTER_NAME=${GKE_CLUSTER_NAME}
-              (cd catapult; make BACKEND=$BACKEND GKE_CREDS_JSON=$GKE_CRED_JSON GKE_CLUSTER_NAME=${GKE_CLUSTER_NAME} CLUSTER_NAME=${GKE_CLUSTER_NAME} k8s)
+              export TF_KEY=${GKE_CLUSTER_NAME}
+              (cd catapult; make BACKEND=$BACKEND GKE_CREDS_JSON=$GKE_CRED_JSON GKE_CLUSTER_NAME=${GKE_CLUSTER_NAME} CLUSTER_NAME=${CLUSTER_NAME} TF_KEY=${TF_KEY} k8s)
               echo ${GKE_CLUSTER_NAME} > kubeconfig-pool/name
               cp catapult/build${GKE_CLUSTER_NAME}/kubeclusterreference kubeconfig-pool/metadata
+              echo tf-${GKE_CLUSTER_NAME}.zip > tfstate-pool/name
+              cp catapult/build${GKE_CLUSTER_NAME}/tf-setup.zip tfstate-pool/metadata
             else
               echo "CI cannot create ${BACKEND} cluster"
               exit 1
@@ -110,25 +126,15 @@ resources:
 
 {{- $delete_k8s := `
                 # delete k8s cluster
+                cp ../tfstate-pool/metadata tfstate.zip
+                export TFSTATE=$PWD/tfstate.zip
+                export AWS_ACCESS_KEY_ID='((aws-ci-chuller-access-key-id))'
+                export AWS_SECRET_ACCESS_KEY='((aws-ci-chuller-secret-access-key))'
                 if [[ ${BACKEND} == "gke" ]]; then
                     printf "%s" '((gke-key-json))' > $PWD/gke-key.json
-                    # GKE var exported here so hijacking doesn't contain them in env
                     export GKE_CRED_JSON=$PWD/gke-key.json
-                    export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
-                    export GKE_CLUSTER_NAME=$(yq r ${KUBECFG} cluster-name)
-                    export GKE_CLUSTER_ZONE=$(yq r ${KUBECFG} cluster-zone)
-                    export GKE_PROJECT=$(yq r ${KUBECFG} project)
-                    info "Using creds from GKE_CRED_JSON…"
-                    gcloud auth revoke 2>/dev/null || true
-                    gcloud auth activate-service-account --project "$GKE_PROJECT" --key-file "$GKE_CRED_JSON"
-                    if [[ $(gcloud auth list  --format="value(account)" | wc -l ) -le 0 ]]; then
-                        err "GKE_CRED_JSON creds don't authenticate, aborting" && exit 1
-                    fi
-                    gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --zone ${GKE_CLUSTER_ZONE}
-                    gcloud -q container clusters delete ${GKE_CLUSTER_NAME} --zone ${GKE_CLUSTER_ZONE}
-                    echo "Pruning all the PV disks attached to the cluster ... "
-                    filter=$(echo ${GKE_CLUSTER_NAME} | cut -c1-18)
-                    gcloud -q compute disks delete --zone ${GKE_CLUSTER_ZONE} $(gcloud compute disks list --filter="name~'${filter}'" | grep ci-gke- | awk '{ print $1 }')
+                    export SCF_OPERATOR=true
+                    make clean
                 fi
 ` }}
 
@@ -266,6 +272,8 @@ jobs:
       outputs:
       - name: kubeconfig-pool
         path: kubeconfig-pool
+      - name: tfstate-pool
+        path: tfstate-pool
       params:
         BACKEND: {{$Backend}}
         QUIET_OUTPUT: true
@@ -279,6 +287,9 @@ jobs:
             {{- print $create_k8s }}
   - put: {{$Backend}}-pool.kube-hosts
     params: {add_claimed: kubeconfig-pool}
+    timeout: 2m
+  - put: tfstate-pool
+    params: {add_claimed: tfstate-pool}
     timeout: 2m
   on_failure:
     do:
@@ -296,20 +307,40 @@ jobs:
           inputs:
           - name: catapult
           - name: pool.kube-hosts
+          - name: tfstate-pool
           params:
             BACKEND: {{$Backend}}
             QUIET_OUTPUT: true
             DEFAULT_STACK: cflinuxfs3
             DOWNLOAD_CATAPULT_DEPS: false
+            {{- if eq $EiriniFlag "eirini" }}
+            ENABLE_EIRINI: true
+            {{ else }}
+            ENABLE_EIRINI: false
+            {{- end }}
           run:
             path: "/bin/bash"
             args:
               - -c
               - |
                 {{- print $obtain_kubeconfig }}
+                {{- if eq $Backend "caasp4" }}
+                {{- print $import_caasp4 }}
+                {{- end }}
+                {{- if eq $Backend "eks" }}
+                {{- print $import_eks }}
+                {{- end }}
+                {{- if eq $Backend "gke" }}
+                {{- print $import_gke }}
+                {{- end }}
+                {{- if eq $Backend "aks" }}
+                {{- print $import_aks }}
+                {{- end }}
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
         params: {remove: {{$Backend}}-pool.kube-hosts}
+      - put: tfstate-pool
+        params: {remove: tfstate-pool}
 {{- end }}
 
 - name: deploy-{{ $EiriniFlag }}-{{ $Backend }}-{{ $OptionsFlag }}
@@ -333,8 +364,10 @@ jobs:
     passed:
     - create-k8s-{{ $EiriniFlag }}-{{ $Backend }}-{{ $OptionsFlag }}
     trigger: true
+  - get: tfstate-pool
+    passed:
+    - create-k8s-{{ $EiriniFlag }}-{{ $Backend }}-{{ $OptionsFlag }}
   {{- else }}
-
   - put: {{$Backend}}-pool.kube-hosts
     params: {acquire: true}
     timeout: 2m
@@ -409,20 +442,40 @@ jobs:
           inputs:
           - name: catapult
           - name: pool.kube-hosts
+          - name: tfstate-pool
           params:
             BACKEND: {{$Backend}}
             QUIET_OUTPUT: true
             DEFAULT_STACK: cflinuxfs3
             DOWNLOAD_CATAPULT_DEPS: false
+            {{- if eq $EiriniFlag "eirini" }}
+            ENABLE_EIRINI: true
+            {{ else }}
+            ENABLE_EIRINI: false
+            {{- end }}
           run:
             path: "/bin/bash"
             args:
               - -c
               - |
                 {{- print $obtain_kubeconfig }}
+                {{- if eq $Backend "caasp4" }}
+                {{- print $import_caasp4 }}
+                {{- end }}
+                {{- if eq $Backend "eks" }}
+                {{- print $import_eks }}
+                {{- end }}
+                {{- if eq $Backend "gke" }}
+                {{- print $import_gke }}
+                {{- end }}
+                {{- if eq $Backend "aks" }}
+                {{- print $import_aks }}
+                {{- end }}
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
         params: {remove: {{$Backend}}-pool.kube-hosts}
+      - put: tfstate-pool
+        params: {remove: tfstate-pool}
   {{- end }}
 
 - name: smoke-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
@@ -434,6 +487,11 @@ jobs:
     passed:
     - deploy-{{ $EiriniFlag }}-{{ $Backend }}-{{ $OptionsFlag }}
     trigger: true
+  {{- if $config.create_k8s }}
+  - get: tfstate-pool
+    passed:
+    - deploy-{{ $EiriniFlag }}-{{ $Backend }}-{{ $OptionsFlag }}
+  {{- end }}
   - task: test-{{$EiriniFlag}}
     privileged: true
     timeout: 1h30m
@@ -500,20 +558,40 @@ jobs:
           inputs:
           - name: catapult
           - name: pool.kube-hosts
+          - name: tfstate-pool
           params:
             BACKEND: {{$Backend}}
             QUIET_OUTPUT: true
             DEFAULT_STACK: cflinuxfs3
             DOWNLOAD_CATAPULT_DEPS: false
+            {{- if eq $EiriniFlag "eirini" }}
+            ENABLE_EIRINI: true
+            {{ else }}
+            ENABLE_EIRINI: false
+            {{- end }}
           run:
             path: "/bin/bash"
             args:
               - -c
               - |
                 {{- print $obtain_kubeconfig }}
+                {{- if eq $Backend "caasp4" }}
+                {{- print $import_caasp4 }}
+                {{- end }}
+                {{- if eq $Backend "eks" }}
+                {{- print $import_eks }}
+                {{- end }}
+                {{- if eq $Backend "gke" }}
+                {{- print $import_gke }}
+                {{- end }}
+                {{- if eq $Backend "aks" }}
+                {{- print $import_aks }}
+                {{- end }}
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
         params: {remove: {{$Backend}}-pool.kube-hosts}
+      - put: tfstate-pool
+        params: {remove: tfstate-pool}
   {{- end }}
 
 - name: cf-acceptance-tests-brain-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
@@ -525,6 +603,11 @@ jobs:
     passed:
     - smoke-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
     trigger: true
+  {{- if $config.create_k8s }}
+  - get: tfstate-pool
+    passed:
+    - smoke-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
+  {{- end }}
   - task: test-{{$EiriniFlag}}
     privileged: true
     timeout: 5h30m
@@ -591,20 +674,40 @@ jobs:
           inputs:
           - name: catapult
           - name: pool.kube-hosts
+          - name: tfstate-pool
           params:
             BACKEND: {{$Backend}}
             QUIET_OUTPUT: true
             DEFAULT_STACK: cflinuxfs3
             DOWNLOAD_CATAPULT_DEPS: false
+            {{- if eq $EiriniFlag "eirini" }}
+            ENABLE_EIRINI: true
+            {{ else }}
+            ENABLE_EIRINI: false
+            {{- end }}
           run:
             path: "/bin/bash"
             args:
               - -c
               - |
                 {{- print $obtain_kubeconfig }}
+                {{- if eq $Backend "caasp4" }}
+                {{- print $import_caasp4 }}
+                {{- end }}
+                {{- if eq $Backend "eks" }}
+                {{- print $import_eks }}
+                {{- end }}
+                {{- if eq $Backend "gke" }}
+                {{- print $import_gke }}
+                {{- end }}
+                {{- if eq $Backend "aks" }}
+                {{- print $import_aks }}
+                {{- end }}
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
         params: {remove: {{$Backend}}-pool.kube-hosts}
+      - put: tfstate-pool
+        params: {remove: tfstate-pool}
   {{- end }}
 
 - name: cf-acceptance-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
@@ -616,6 +719,11 @@ jobs:
     passed:
     - cf-acceptance-tests-brain-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
     trigger: true
+  {{- if $config.create_k8s }}
+  - get: tfstate-pool
+    passed:
+    - cf-acceptance-tests-brain-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
+  {{- end }}
   - task: test-{{$EiriniFlag}}
     privileged: true
     timeout: 5h30m
@@ -682,20 +790,40 @@ jobs:
           inputs:
           - name: catapult
           - name: pool.kube-hosts
+          - name: tfstate-pool
           params:
             BACKEND: {{$Backend}}
             QUIET_OUTPUT: true
             DEFAULT_STACK: cflinuxfs3
             DOWNLOAD_CATAPULT_DEPS: false
+            {{- if eq $EiriniFlag "eirini" }}
+            ENABLE_EIRINI: true
+            {{ else }}
+            ENABLE_EIRINI: false
+            {{- end }}
           run:
             path: "/bin/bash"
             args:
               - -c
               - |
                 {{- print $obtain_kubeconfig }}
+                {{- if eq $Backend "caasp4" }}
+                {{- print $import_caasp4 }}
+                {{- end }}
+                {{- if eq $Backend "eks" }}
+                {{- print $import_eks }}
+                {{- end }}
+                {{- if eq $Backend "gke" }}
+                {{- print $import_gke }}
+                {{- end }}
+                {{- if eq $Backend "aks" }}
+                {{- print $import_aks }}
+                {{- end }}
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
         params: {remove: {{$Backend}}-pool.kube-hosts}
+      - put: tfstate-pool
+        params: {remove: tfstate-pool}
   {{- end }}
 
 - name: sync-integration-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
@@ -707,6 +835,11 @@ jobs:
     passed:
     - cf-acceptance-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
     trigger: true
+  {{- if $config.create_k8s }}
+  - get: tfstate-pool
+    passed:
+    - cf-acceptance-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
+  {{- end }}
   - task: test-{{$EiriniFlag}}
     privileged: true
     timeout: 5h30m
@@ -773,20 +906,40 @@ jobs:
           inputs:
           - name: catapult
           - name: pool.kube-hosts
+          - name: tfstate-pool
           params:
             BACKEND: {{$Backend}}
             QUIET_OUTPUT: true
             DEFAULT_STACK: cflinuxfs3
             DOWNLOAD_CATAPULT_DEPS: false
+            {{- if eq $EiriniFlag "eirini" }}
+            ENABLE_EIRINI: true
+            {{ else }}
+            ENABLE_EIRINI: false
+            {{- end }}
           run:
             path: "/bin/bash"
             args:
               - -c
               - |
                 {{- print $obtain_kubeconfig }}
+                {{- if eq $Backend "caasp4" }}
+                {{- print $import_caasp4 }}
+                {{- end }}
+                {{- if eq $Backend "eks" }}
+                {{- print $import_eks }}
+                {{- end }}
+                {{- if eq $Backend "gke" }}
+                {{- print $import_gke }}
+                {{- end }}
+                {{- if eq $Backend "aks" }}
+                {{- print $import_aks }}
+                {{- end }}
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
         params: {remove: {{$Backend}}-pool.kube-hosts}
+      - put: tfstate-pool
+        params: {remove: tfstate-pool}
   {{- end }}
 
 - name: upgrade-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
@@ -800,6 +953,11 @@ jobs:
     passed:
     - sync-integration-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
     trigger: true
+  {{- if $config.create_k8s }}
+  - get: tfstate-pool
+    passed:
+    - sync-integration-tests-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
+  {{- end }}
   - task: upgrade-{{$EiriniFlag}}
     privileged: true
     timeout: 5h30m
@@ -869,20 +1027,40 @@ jobs:
           inputs:
           - name: catapult
           - name: pool.kube-hosts
+          - name: tfstate-pool
           params:
             BACKEND: {{$Backend}}
             QUIET_OUTPUT: true
             DEFAULT_STACK: cflinuxfs3
             DOWNLOAD_CATAPULT_DEPS: false
+            {{- if eq $EiriniFlag "eirini" }}
+            ENABLE_EIRINI: true
+            {{ else }}
+            ENABLE_EIRINI: false
+            {{- end }}
           run:
             path: "/bin/bash"
             args:
               - -c
               - |
                 {{- print $obtain_kubeconfig }}
+                {{- if eq $Backend "caasp4" }}
+                {{- print $import_caasp4 }}
+                {{- end }}
+                {{- if eq $Backend "eks" }}
+                {{- print $import_eks }}
+                {{- end }}
+                {{- if eq $Backend "gke" }}
+                {{- print $import_gke }}
+                {{- end }}
+                {{- if eq $Backend "aks" }}
+                {{- print $import_aks }}
+                {{- end }}
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
         params: {remove: {{$Backend}}-pool.kube-hosts}
+      - put: tfstate-pool
+        params: {remove: tfstate-pool}
   {{- end }}
 
 - name: stratos-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
@@ -896,6 +1074,11 @@ jobs:
     passed:
     - upgrade-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
     trigger: true
+  {{- if $config.create_k8s }}
+  - get: tfstate-pool
+    passed:
+    - upgrade-{{$EiriniFlag}}-{{$Backend}}-{{$OptionsFlag}}
+  {{- end }}
   - task: stratos-{{$EiriniFlag}}
     privileged: true
     timeout: 5h30m
@@ -964,20 +1147,40 @@ jobs:
           inputs:
           - name: catapult
           - name: pool.kube-hosts
+          - name: tfstate-pool
           params:
             BACKEND: {{$Backend}}
             QUIET_OUTPUT: true
             DEFAULT_STACK: cflinuxfs3
             DOWNLOAD_CATAPULT_DEPS: false
+            {{- if eq $EiriniFlag "eirini" }}
+            ENABLE_EIRINI: true
+            {{ else }}
+            ENABLE_EIRINI: false
+            {{- end }}
           run:
             path: "/bin/bash"
             args:
               - -c
               - |
                 {{- print $obtain_kubeconfig }}
+                {{- if eq $Backend "caasp4" }}
+                {{- print $import_caasp4 }}
+                {{- end }}
+                {{- if eq $Backend "eks" }}
+                {{- print $import_eks }}
+                {{- end }}
+                {{- if eq $Backend "gke" }}
+                {{- print $import_gke }}
+                {{- end }}
+                {{- if eq $Backend "aks" }}
+                {{- print $import_aks }}
+                {{- end }}
                 {{- print $delete_k8s }}
       - put: {{$Backend}}-pool.kube-hosts
         params: {remove: {{$Backend}}-pool.kube-hosts}
+      - put: tfstate-pool
+        params: {remove: tfstate-pool}
   {{- end }}
 
 {{ end }} # end eirini
