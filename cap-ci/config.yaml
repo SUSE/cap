@@ -1,4 +1,7 @@
 create-k8s: true
+
+# Currently only accepts disabling jobs if all later jobs are also disabled.
+# Otherwise the job dependencies in pipeline.template(listed in passed) have to be changed manually.
 jobs:
   deploy: true
   smoke-tests: true
