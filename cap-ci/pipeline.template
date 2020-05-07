@@ -344,15 +344,15 @@ jobs:
   public: false
   plan:
   - get: s3.kubecf-bundle
-    {{- if index $config "create-k8s" }}
+    {{- if not (index $config "create-k8s") }}
     trigger: true
     {{- end }}
   - get: helm-chart.stratos-chart
-    {{- if index $config "create-k8s" }}
+    {{- if not (index $config "create-k8s") }}
     trigger: true
     {{- end }}
   - get: helm-chart.stratos-metrics-chart
-    {{- if index $config "create-k8s" }}
+    {{- if not (index $config "create-k8s") }}
     trigger: true
     {{- end }}
   - get: catapult
