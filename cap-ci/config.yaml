@@ -1,1 +1,32 @@
-create_k8s: true
+create-k8s: true
+
+# Currently only accepts disabling jobs if all later jobs are also disabled.
+# Otherwise the job dependencies in pipeline.template(listed in passed) have to be changed manually.
+jobs:
+  deploy: true
+  smoke-tests: true
+  cf-acceptance-tests-brain: true
+  cf-acceptance-tests: true
+  sync-integration-tests: true
+  upgrade: true
+  stratos: true
+backends:
+  caasp4: true
+  aks: true
+  gke: true
+  eks: true
+options:
+  sa: true
+  ha: true
+  all: true
+schedulers:
+  diego: true
+  eirini: true
+catapult:
+  uri: https://github.com/SUSE/catapult
+  branch: master
+brain:
+  verbose: false
+  inorder: false
+  include: ""
+  exclude: ""
