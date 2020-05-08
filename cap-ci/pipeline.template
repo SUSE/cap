@@ -1158,7 +1158,8 @@ jobs:
             {{- print $stratos }}
 {{ end }}
 
-{{- if index $config.jobs "clean-kubecf" }}
+# The cluster will be cleared and deleted if `create-k8s` is true irrespective of the `clean-kubecf` value.
+{{- if or (index $config.jobs "clean-kubecf") (index $config "create-k8s") }}
 - name: clean-kubecf-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
   public: false
