@@ -240,7 +240,7 @@ resources:
                 make scf-clean
 ` }}
 
-{{- $clean_stratos := `
+{{- $clean_stratos_and_metrics := `
                 # Attention: PWD = ___/catapult here
                 # cleanup
                 export QUIET_OUTPUT=true
@@ -1206,7 +1206,7 @@ jobs:
             {{- end }}
             {{- print $clean_kubecf }}
             {{- if index $config.jobs "stratos" }}
-            {{- print $clean_stratos }}
+            {{- print $clean_stratos_and_metrics }}
             {{- end}}
   {{- if index $config "create-k8s" }}
   ensure:
