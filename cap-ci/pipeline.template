@@ -348,7 +348,7 @@ jobs:
 {{ end }}
 
 {{- if index $config.jobs "deploy-kubecf" }}
-- name: deploy-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+- name: deploy-kubecf-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   public: false
   plan:
   - get: s3.kubecf-bundle
@@ -377,7 +377,7 @@ jobs:
     params: {acquire: true}
     timeout: 2m
   {{- end }}
-  - task: deploy
+  - task: deploy-kubecf
     privileged: true
     timeout: 2h30m
     input_mapping:
@@ -492,12 +492,12 @@ jobs:
   - get: catapult
   - get: {{ $backend }}-pool.kube-hosts
     passed:
-    - deploy-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+    - deploy-kubecf-{{ $scheduler }}-{{ $backend }}-{{ $option }}
     trigger: true
   {{- if index $config "create-k8s" }}
   - get: tfstate-pool
     passed:
-    - deploy-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+    - deploy-kubecf-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   {{- end }}
   - task: test-{{ $scheduler }}
     privileged: true
@@ -1150,7 +1150,7 @@ jobs:
 {{ end }}
 
 {{- if index $config.jobs "clean-kubecf" }}
-- name: clean-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+- name: clean-kubecf-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
   public: false
   plan:
@@ -1159,7 +1159,7 @@ jobs:
     passed:
     - stratos-{{ $scheduler }}-{{ $backend }}-{{ $option }}
     trigger: true
-  - task: clean-{{ $scheduler }}
+  - task: clean-kubecf-{{ $scheduler }}
     privileged: true
     timeout: 5h30m
     input_mapping:
