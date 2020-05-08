@@ -233,11 +233,20 @@ resources:
 ` }}
 
 {{- $clean_kubecf := `
-                  # Attention: PWD = ___/catapult here
-                  # cleanup
-                  export QUIET_OUTPUT=true
-                  env | sort | sed -e 's|^|CONFIGURATION: |'
-                  make scf-clean
+                # Attention: PWD = ___/catapult here
+                # cleanup
+                export QUIET_OUTPUT=true
+                env | sort | sed -e 's|^|CONFIGURATION: |'
+                make scf-clean
+` }}
+
+{{- $clean_stratos := `
+                # Attention: PWD = ___/catapult here
+                # cleanup
+                export QUIET_OUTPUT=true
+                env | sort | sed -e 's|^|CONFIGURATION: |'
+                make stratos-clean
+                make metrics-clean
 ` }}
 
 {{- $allbells := `
@@ -1195,6 +1204,9 @@ jobs:
             {{- print $import_aks }}
             {{- end }}
             {{- print $clean_kubecf }}
+            {{- if index $config.jobs "stratos" }}
+            {{- print $clean_stratos }}
+            {{- end}}
   {{- if index $config "create-k8s" }}
   ensure:
     do:
