@@ -2,7 +2,7 @@
 - name: cf-acceptance-tests-brain-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
   serial_groups: [{{ .scheduler }}-{{ .backend }}-{{ .avail }}]
   public: false
-  plan: 
+  plan:
   - get: catapult
   - get: {{ .backend }}-pool.kube-hosts
 {{- if ne .position 0 }}
@@ -15,15 +15,15 @@
     timeout: 5h30m
     input_mapping:
       pool.kube-hosts: {{ .backend }}-pool.kube-hosts
-    config: 
+    config:
       platform: linux
       image_resource:
         type: registry-image
-        source: 
+        source:
           repository: splatform/catapult
       inputs:
       - name: catapult
-      - name: pool.kube-hosts 
+      - name: pool.kube-hosts
       params:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
@@ -42,7 +42,7 @@
         TEST_SUITE: brain
       run:
         path: "/bin/bash"
-        args: 
+        args:
           - -c
           - |
             {{- tmpl.Exec "scripts_obtain_kubeconfig" | indent 12 }}

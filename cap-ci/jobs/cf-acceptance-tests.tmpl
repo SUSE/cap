@@ -26,7 +26,7 @@
       - name: pool.kube-hosts
       params:
         QUIET_OUTPUT: true
-        DOWNLOAD_CATAPULT_DEPS: false 
+        DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
 {{- if eq .scheduler "eirini" }}
         ENABLE_EIRINI: true
@@ -42,7 +42,7 @@
         TEST_SUITE: cats
       run:
         path: "/bin/bash"
-        args: 
+        args:
           - -c
           - |
             {{- tmpl.Exec "scripts_obtain_kubeconfig" | indent 12 }}
