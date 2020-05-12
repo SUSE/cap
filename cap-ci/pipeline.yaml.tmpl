@@ -1,13 +1,12 @@
-# Defining datasources.
-{{- $config := (datasource "config") }}
+{{- $config := tmpl.Exec "config" | data.YAML -}}
 groups:
 {{- range $backend, $enabled := $config.backends }}{{ if $enabled }}
 - name: {{ $backend }}
   jobs:
     {{- range $job, $enabled :=  $config.jobs }}{{ if $enabled }}
     {{- range $scheduler, $enabled := $config.schedulers }}{{ if $enabled }}
-    {{- range $option, $enabled := $config.options }}{{ if $enabled }}
-    - {{ $job }}-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+    {{- range $avail, $enabled := $config.availabilities }}{{ if $enabled }}
+    - {{ $job }}-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
     {{- end }}{{ end }}
     {{- end }}{{ end }}
     {{- end }}{{ end }}
@@ -18,8 +17,8 @@ groups:
     {{- range $backend, $enabled := $config.backends }}{{ if $enabled }}
     {{- range $job, $enabled :=  $config.jobs }}{{ if $enabled }}
     {{- range $scheduler, $enabled := $config.schedulers }}{{ if $enabled }}
-    {{- range $option, $enabled := $config.options }}{{ if $enabled }}
-    - {{ $job }}-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+    {{- range $avail, $enabled := $config.availabilities }}{{ if $enabled }}
+    - {{ $job }}-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
     {{- end }}{{ end }}
     {{- end }}{{ end }}
     {{- end }}{{ end }}
@@ -87,124 +86,21 @@ resources:
 
 {{ $pipelineName := .Env.PIPELINE }}
 
-{{- $obtain_kubeconfig := `
-            # obtain kubeconfig from pool
-            pool_file=${pool_file:-pool.kube-hosts/metadata}
-            export CLUSTER_NAME=$(cat pool.kube-hosts/name)
-            cp ${pool_file} catapult/kubeconfig_$CLUSTER_NAME
-            pushd catapult
-` }}
-
-{{- $import_gke := `
-            # create buildfolder prepared for gke
-            export BACKEND=gke
-            printf "%s" '((gke-key-json))' > $PWD/gke-key.json
-            # GKE var exported here tso hijacking doesn't contain them in env
-            export GKE_CRED_JSON=$PWD/gke-key.json
-            export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
-            make kubeconfig
-` }}
-
-{{- $import_eks := `
-            # create buildfolder prepared for eks
-            export BACKEND=eks
-            # AWS vars exported here so hijacking doesn't contain them in env
-            export AWS_ACCESS_KEY_ID='((aws-ci-chuller-access-key-id))'
-            export AWS_SECRET_ACCESS_KEY='((aws-ci-chuller-secret-access-key))'
-            export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
-            make kubeconfig
-` }}
-
-{{- $import_aks := `
-            # create buildfolder prepared for aks
-            export BACKEND=aks
-            export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
-            make kubeconfig
-` }}
-
-{{- $import_caasp4 := `
-            # create buildfolder prepared for caasp4os
-            export BACKEND=caasp4os
-            export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
-            make kubeconfig
-` }}
-
-{{- $deploy := `
-            # Attention: PWD = ___/catapult here
-            # deploy kubecf from chart
-            export SCF_CHART="$(readlink -f ../s3.kubecf-bundle/*.tgz)"
-            export SCF_TESTGROUP=true
-            export SCF_OPERATOR=true
-            export DOCKER_ORG=cap-staging
-            export QUIET_OUTPUT=true
-            env | sort | sed -e 's|^|CONFIGURATION: |'
-            make scf && make scf-login # ensure scf is there
-` }}
-
-{{- $test := `
-            # Attention: PWD = ___/catapult here
-            # run test suites on cluster
-            # See: https://github.com/SUSE/catapult/wiki/Running-SCF-tests#kubecf
-            export KUBECF_TEST_SUITE="${TEST_SUITE:-smokes}"
-            export KUBECF_NAMESPACE="scf"
-            export SCF_TESTGROUP=true
-            export QUIET_OUTPUT=true
-            env | sort | sed -e 's|^|CONFIGURATION: |'
-            make tests-kubecf
-` }}
-
-{{- $stratos := `
-            # Attention: PWD = ____/catapult here
-            # obtain scf-config-values.yaml for stratos
-            export QUIET_OUTPUT=true
-            export SCF_TESTGROUP=true
-            export SCF_OPERATOR=true
-            export DOCKER_ORG=cap-staging
-            make scf-gen-config
-            # deploy stratos console & metrics
-            export STRATOS_CHART="$(readlink -f ../helm-chart.stratos-chart/*.tgz)"
-            export METRICS_CHART="$(readlink -f ../helm-chart.stratos-metrics-chart/*.tgz)"
-            unset DOCKER_ORG # consume docker images from DOCKER_ORG=cap on stratos & metrics
-            env | sort | sed -e 's|^|CONFIGURATION: |'
-            make stratos metrics
-` }}
-
-{{- $upgrade := `
-            # Attention: PWD = ___/catapult here
-            # upgrade kubecf
-            export SCF_CHART="$(readlink -f ../s3.kubecf-bundle/*.tgz)"
-            export SCF_OPERATOR=true
-            export DOCKER_ORG=cap-staging
-            export QUIET_OUTPUT=true
-            env | sort | sed -e 's|^|CONFIGURATION: |'
-            make scf-chart # this takes the same chart as the deploy step for now
-            make scf-gen-config
-            make scf-upgrade
-` }}
-
 {{- $allbells := `
         # enable as much options as possible
         HA: true
         AUTOSCALER: true
 ` }}
 
-{{- $clean := `
-            # Attention: PWD = ___/catapult here
-            # cleanup
-            export QUIET_OUTPUT=true
-            env | sort | sed -e 's|^|CONFIGURATION: |'
-            make scf-clean
-` }}
-
 jobs:
 {{- range $backend, $enabled :=  $config.backends }}{{ if $enabled }}
-{{- range $option, $enabled := $config.options }}{{ if $enabled }}
+{{- range $avail, $enabled := $config.availabilities }}{{ if $enabled }}
 {{- range $scheduler, $enabled := $config.schedulers }}{{ if $enabled }}
 
-# {{ $backend }}-{{ $option }}
+# {{ $backend }}-{{ $avail }}
 
 {{ if index $config.jobs "deploy" }}
-- name: deploy-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+- name: deploy-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
   public: false
   plan:
   - get: s3.kubecf-bundle
@@ -245,10 +141,10 @@ jobs:
 {{ else }}
         ENABLE_EIRINI: false
 {{- end }}
-{{- if eq $option "ha" }}
+{{- if eq $avail "ha" }}
         HA: true
 {{- end }}
-{{- if eq $option "all" }}
+{{- if eq $avail "all" }}
 {{- print $allbells }}
 {{- end }}
       run:
@@ -256,31 +152,20 @@ jobs:
         args:
           - -c
           - |
-            {{- print $obtain_kubeconfig }}
-            {{- if eq $backend "caasp4" }}
-            {{- print $import_caasp4 }}
-            {{- end }}
-            {{- if eq $backend "eks" }}
-            {{- print $import_eks }}
-            {{- end }}
-            {{- if eq $backend "gke" }}
-            {{- print $import_gke }}
-            {{- end }}
-            {{- if eq $backend "aks" }}
-            {{- print $import_aks }}
-            {{- end }}
-            {{- print $deploy }}
+            {{- tmpl.Exec "scripts_obtain_kubeconfig" | indent 12 }}
+            {{- tmpl.Exec ( print "scripts_import_" $backend ) | indent 12}}
+            {{- tmpl.Exec "scripts_deploy"| indent 12}}
 {{ end }}
 
 {{ if index $config.jobs "smoke-tests" }}
-- name: smoke-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
-  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
+- name: smoke-tests-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
+  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $avail }}]
   public: false
   plan:
   - get: catapult
   - get: {{ $backend }}-pool.kube-hosts
     passed:
-    - deploy-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+    - deploy-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
     trigger: true
   - task: test-{{ $scheduler }}
     privileged: true
@@ -305,10 +190,10 @@ jobs:
 {{ else }}
         ENABLE_EIRINI: false
 {{- end }}
-{{- if eq $option "ha" }}
+{{- if eq $avail "ha" }}
         HA: true
 {{- end }}
-{{- if eq $option "all" }}
+{{- if eq $avail "all" }}
 {{- print $allbells }}
 {{- end }}
         TEST_SUITE: smokes
@@ -317,31 +202,20 @@ jobs:
         args:
           - -c
           - |
-            {{- print $obtain_kubeconfig }}
-            {{- if eq $backend "caasp4" }}
-            {{- print $import_caasp4 }}
-            {{- end }}
-            {{- if eq $backend "eks" }}
-            {{- print $import_eks }}
-            {{- end }}
-            {{- if eq $backend "gke" }}
-            {{- print $import_gke }}
-            {{- end }}
-            {{- if eq $backend "aks" }}
-            {{- print $import_aks }}
-            {{- end }}
-            {{- print $test }}
+            {{- tmpl.Exec "scripts_obtain_kubeconfig" | indent 12 }}
+            {{- tmpl.Exec ( print "scripts_import_" $backend ) | indent 12}}
+            {{- tmpl.Exec "scripts_test" | indent 12 }}
 {{ end }}
 
 {{ if index $config.jobs "cf-acceptance-tests" }}
-- name: cf-acceptance-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
-  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
+- name: cf-acceptance-tests-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
+  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $avail }}]
   public: false
   plan:
   - get: catapult
   - get: {{ $backend }}-pool.kube-hosts
     passed:
-    - smoke-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+    - smoke-tests-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
     trigger: true
   - task: test-{{ $scheduler }}
     privileged: true
@@ -366,10 +240,10 @@ jobs:
 {{ else }}
         ENABLE_EIRINI: false
 {{- end }}
-{{- if eq $option "ha" }}
+{{- if eq $avail "ha" }}
         HA: true
 {{- end }}
-{{- if eq $option "all" }}
+{{- if eq $avail "all" }}
 {{- print $allbells }}
 {{- end }}
         TEST_SUITE: cats
@@ -378,31 +252,20 @@ jobs:
         args:
           - -c
           - |
-            {{- print $obtain_kubeconfig}}
-            {{- if eq $backend "caasp4" }}
-            {{- print $import_caasp4 }}
-            {{- end }}
-            {{- if eq $backend "eks" }}
-            {{- print $import_eks }}
-            {{- end }}
-            {{- if eq $backend "gke" }}
-            {{- print $import_gke }}
-            {{- end }}
-            {{- if eq $backend "aks" }}
-            {{- print $import_aks }}
-            {{- end }}
-            {{- print $test }}
+            {{- tmpl.Exec "scripts_obtain_kubeconfig" | indent 12 }}
+            {{- tmpl.Exec ( print "scripts_import_" $backend ) | indent 12}}
+            {{- tmpl.Exec "scripts_test" | indent 12 }}
 {{ end }}
 
 {{ if index $config.jobs "sync-integration-tests" }}
-- name: sync-integration-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
-  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
+- name: sync-integration-tests-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
+  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $avail }}]
   public: false
   plan:
   - get: catapult
   - get: {{ $backend }}-pool.kube-hosts
     passed:
-    - cf-acceptance-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+    - cf-acceptance-tests-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
     trigger: true
   - task: test-{{ $scheduler }}
     privileged: true
@@ -427,10 +290,10 @@ jobs:
 {{ else }}
         ENABLE_EIRINI: false
 {{- end }}
-{{- if eq $option "ha" }}
+{{- if eq $avail "ha" }}
         HA: true
 {{- end }}
-{{- if eq $option "all" }}
+{{- if eq $avail "all" }}
 {{- print $allbells }}
 {{- end }}
         TEST_SUITE: sits
@@ -439,31 +302,20 @@ jobs:
         args:
           - -c
           - |
-            {{- print $obtain_kubeconfig }}
-            {{- if eq $backend "caasp4" }}
-            {{- print $import_caasp4 }}
-            {{- end }}
-            {{- if eq $backend "eks" }}
-            {{- print $import_eks }}
-            {{- end }}
-            {{- if eq $backend "gke" }}
-            {{- print $import_gke }}
-            {{- end }}
-            {{- if eq $backend "aks" }}
-            {{- print $import_aks }}
-            {{- end }}
-            {{- print $test }}
+            {{- tmpl.Exec "scripts_obtain_kubeconfig" | indent 12 }}
+            {{- tmpl.Exec ( print "scripts_import_" $backend ) | indent 12}}
+            {{- tmpl.Exec "scripts_test" | indent 12 }}
 {{ end }}
 
 {{ if index $config.jobs "cf-acceptance-tests-brain" }}
-- name: cf-acceptance-tests-brain-{{ $scheduler }}-{{ $backend }}-{{ $option }}
-  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
+- name: cf-acceptance-tests-brain-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
+  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $avail }}]
   public: false
   plan:
   - get: catapult
   - get: {{ $backend }}-pool.kube-hosts
     passed:
-    - sync-integration-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+    - sync-integration-tests-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
     trigger: true
   - task: test-{{ $scheduler }}
     privileged: true
@@ -488,10 +340,10 @@ jobs:
 {{ else }}
         ENABLE_EIRINI: false
 {{- end }}
-{{- if eq $option "ha" }}
+{{- if eq $avail "ha" }}
         HA: true
 {{- end }}
-{{- if eq $option "all" }}
+{{- if eq $avail "all" }}
 {{- print $allbells }}
 {{- end }}
         TEST_SUITE: brain
@@ -500,25 +352,14 @@ jobs:
         args:
           - -c
           - |
-            {{- print $obtain_kubeconfig }}
-            {{- if eq $backend "caasp4" }}
-            {{- print $import_caasp4 }}
-            {{- end }}
-            {{- if eq $backend "eks" }}
-            {{- print $import_eks }}
-            {{- end }}
-            {{- if eq $backend "gke" }}
-            {{- print $import_gke }}
-            {{- end }}
-            {{- if eq $backend "aks" }}
-            {{- print $import_aks }}
-            {{- end }}
-            {{- print $test }}
+            {{- tmpl.Exec "scripts_obtain_kubeconfig" | indent 12 }}
+            {{- tmpl.Exec ( print "scripts_import_" $backend ) | indent 12}}
+            {{- tmpl.Exec "scripts_test" | indent 12 }}
 {{ end }}
 
 {{ if index $config.jobs "upgrade" }}
-- name: upgrade-{{ $scheduler }}-{{ $backend }}-{{ $option }}
-  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
+- name: upgrade-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
+  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $avail }}]
   public: false
   plan:
   - get: s3.kubecf-bundle
@@ -526,7 +367,7 @@ jobs:
   - get: catapult
   - get: {{ $backend }}-pool.kube-hosts
     passed:
-    - cf-acceptance-tests-brain-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+    - cf-acceptance-tests-brain-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
     trigger: true
   - task: upgrade-{{ $scheduler }}
     privileged: true
@@ -552,39 +393,26 @@ jobs:
 {{ else }}
         ENABLE_EIRINI: false
 {{- end }}
-{{- if eq $option "ha" }}
+{{- if eq $avail "ha" }}
         HA: true
 {{- end }}
-{{- if eq $option "all" }}
+{{- if eq $avail "all" }}
 {{- print $allbells }}
 {{- end }}
-        TEST_SUITE: cats
-        TEST_SUITE: cats
         BACKEND: {{ $backend }}
       run:
         path: "/bin/bash"
         args:
           - -c
           - |
-            {{- print $obtain_kubeconfig }}
-            {{- if eq $backend "caasp4" }}
-            {{- print $import_caasp4 }}
-            {{- end }}
-            {{- if eq $backend "eks" }}
-            {{- print $import_eks }}
-            {{- end }}
-            {{- if eq $backend "gke" }}
-            {{- print $import_gke }}
-            {{- end }}
-            {{- if eq $backend "aks" }}
-            {{- print $import_aks }}
-            {{- end }}
-            {{- print $upgrade }}
+            {{- tmpl.Exec "scripts_obtain_kubeconfig" | indent 12 }}
+            {{- tmpl.Exec ( print "scripts_import_" $backend ) | indent 12}}
+            {{- tmpl.Exec "scripts_obtain_upgrade" | indent 12 }}
 {{ end }}
 
 {{ if index $config.jobs "stratos" }}
-- name: stratos-{{ $scheduler }}-{{ $backend }}-{{ $option }}
-  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
+- name: stratos-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
+  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $avail }}]
   public: false
   plan:
   - get: catapult
@@ -592,7 +420,7 @@ jobs:
   - get: helm-chart.stratos-metrics-chart
   - get: {{ $backend }}-pool.kube-hosts
     passed:
-    - upgrade-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+    - upgrade-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
     trigger: true
   - task: stratos-{{ $scheduler }}
     privileged: true
@@ -619,10 +447,10 @@ jobs:
 {{ else }}
         ENABLE_EIRINI: false
 {{- end }}
-{{- if eq $option "ha" }}
+{{- if eq $avail "ha" }}
         HA: true
 {{- end }}
-{{- if eq $option "all" }}
+{{- if eq $avail "all" }}
 {{- print $allbells }}
 {{- end }}
         TEST_SUITE: cats
@@ -631,34 +459,23 @@ jobs:
         args:
           - -c
           - |
-            {{- print $obtain_kubeconfig }}
-            {{- if eq $backend "caasp4" }}
-            {{- print $import_caasp4 }}
-            {{- end }}
-            {{- if eq $backend "eks" }}
-            {{- print $import_eks }}
-            {{- end }}
-            {{- if eq $backend "gke" }}
-            {{- print $import_gke }}
-            {{- end }}
-            {{- if eq $backend "aks" }}
-            {{- print $import_aks }}
-            {{- end }}
-            {{- print $stratos }}
+            {{- tmpl.Exec "scripts_obtain_kubeconfig" | indent 12 }}
+            {{- tmpl.Exec ( print "scripts_import_" $backend ) | indent 12}}
+            {{- tmpl.Exec "scripts_stratos" | indent 12 }}
 {{ end }}
 
-{{ if index $config.jobs "clean" }}
-- name: clean-{{ $scheduler }}-{{ $backend }}-{{ $option }}
-  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $option }}]
+{{ if index $config.jobs "destroy-kubecf" }}
+- name: destroy-kubecf-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
+  serial_groups: [{{ $scheduler }}-{{ $backend }}-{{ $avail }}]
   public: false
   plan:
   - get: catapult
   - get: {{ $backend }}-pool.kube-hosts
     passed:
     #TODO: change this to stratos
-    - smoke-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
+    - smoke-tests-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
     trigger: true
-  - task: clean-{{ $scheduler }}
+  - task: dstroy-kubecf-{{ $scheduler }}
     privileged: true
     timeout: 5h30m
     input_mapping:
@@ -680,24 +497,13 @@ jobs:
         args:
           - -c
           - |
-            {{- print $obtain_kubeconfig }}
-            {{- if eq $backend "caasp4" }}
-            {{- print $import_caasp4 }}
-            {{- end }}
-            {{- if eq $backend "eks" }}
-            {{- print $import_eks }}
-            {{- end }}
-            {{- if eq $backend "gke" }}
-            {{- print $import_gke }}
-            {{- end }}
-            {{- if eq $backend "aks" }}
-            {{- print $import_aks }}
-            {{- end }}
-            {{- print $clean }}
+            {{- tmpl.Exec "scripts_obtain_kubeconfig" | indent 12 }}
+            {{- tmpl.Exec ( print "scripts_import_" $backend ) | indent 12}}
+            {{- tmpl.Exec "scripts_destroy_kubecf" | indent 12 }}
   - put: {{ $backend }}-pool.kube-hosts
     params: {release: {{ $backend }}-pool.kube-hosts}
 {{ end }}
 
 {{- end }}{{ end }} # end eirini
-{{- end }}{{ end }} # end options
+{{- end }}{{ end }} # end availabilities
 {{- end }}{{ end }} # end backend

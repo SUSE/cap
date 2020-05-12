@@ -1,0 +1,6 @@
+{{ define "scripts_import_aks" }}
+# create buildfolder prepared for aks
+export BACKEND=aks
+export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
+make kubeconfig
+{{ end }}

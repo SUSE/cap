@@ -1,3 +1,4 @@
+{{ define "config" }}
 jobs:
   deploy: true
   smoke-tests: true
@@ -6,13 +7,22 @@ jobs:
   sync-integration-tests: false
   upgrade: false
   stratos: false
-  clean: true
+  destroy-kubecf: true
+jobs_ordered:
+- deploy
+- smoke-tests
+- cf-acceptance-tests-brain
+- cf-acceptance-tests
+- sync-integration-tests
+- upgrade
+- stratos
+- destroy-kubecf
 backends:
   caasp4: false
-  aks: false
+  aks: alse
   gke: true
   eks: false
-options:
+availabilities:
   sa: true
   ha: false
   all: false
@@ -27,3 +37,4 @@ brain:
   inorder: false
   include: ""
   exclude: ""
+{{ end }}
