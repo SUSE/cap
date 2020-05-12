@@ -38,4 +38,7 @@ fly_args=(
     "--pipeline=${PIPELINE}"
 )
 
-fly "${fly_args[@]}" --config <(gomplate --verbose --datasource config.yaml --file pipeline.template)
+# space-separated paths to template files and directories which contain template files
+TEMPLATE_PATHS="config.yaml.tmpl scripts jobs"
+TEMPLATES=$(find ${TEMPLATE_PATHS} -type f -exec echo "--template="{} \;)
+fly "${fly_args[@]}" --config <(gomplate --verbose gomplate ${TEMPLATES} --file pipeline.yaml.tmpl)

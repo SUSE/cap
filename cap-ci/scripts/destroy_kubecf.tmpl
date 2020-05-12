@@ -1,0 +1,7 @@
+{{ define "scripts_destroy_kubecf" }}
+{{- /* Attention: PWD = ___/catapult here */ -}}
+{{- /* cleanup */ -}}
+export QUIET_OUTPUT=true
+env | sort | sed -e 's|^|CONFIGURATION: |'
+make scf-clean
+{{ end }}

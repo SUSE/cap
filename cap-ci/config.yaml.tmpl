@@ -1,18 +1,28 @@
+{{ define "config" }}
 jobs:
-  deploy: true
+  deploy-kubecf: true
   smoke-tests: true
   cf-acceptance-tests-brain: false
   cf-acceptance-tests: false
   sync-integration-tests: false
-  upgrade: false
+  upgrade-kubecf: false
   stratos: false
-  clean: true
+  destroy-kubecf: true
+jobs_ordered:
+- deploy-kubecf
+- smoke-tests
+- cf-acceptance-tests-brain
+- cf-acceptance-tests
+- sync-integration-tests
+- upgrade-kubecf
+- stratos
+- destroy-kubecf
 backends:
   caasp4: false
   aks: false
   gke: true
   eks: false
-options:
+availabilities:
   sa: true
   ha: false
   all: false
@@ -27,3 +37,4 @@ brain:
   inorder: false
   include: ""
   exclude: ""
+{{ end }}

@@ -1,0 +1,11 @@
+{{ define "scripts_deploy_kubecf" }}
+{{- /* Attention: PWD = ___/catapult here *// -}}
+{{- /* deploy kubecf from chart */ }}
+export SCF_CHART="$(readlink -f ../s3.kubecf-bundle/*.tgz)"
+export SCF_TESTGROUP=true
+export SCF_OPERATOR=true
+export DOCKER_ORG=cap-staging
+export QUIET_OUTPUT=true
+env | sort | sed -e 's|^|CONFIGURATION: |'
+make scf && make scf-login # ensure scf is there
+{{ end }}
