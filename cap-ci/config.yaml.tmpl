@@ -1,20 +1,20 @@
 {{ define "config" }}
 jobs:
-  deploy: true
+  deploy-kubecf: true
   smoke-tests: true
   cf-acceptance-tests-brain: false
   cf-acceptance-tests: false
   sync-integration-tests: false
-  upgrade: false
+  upgrade-kubecf: false
   stratos: false
   destroy-kubecf: true
 jobs_ordered:
-- deploy
+- deploy-kubecf
 - smoke-tests
 - cf-acceptance-tests-brain
 - cf-acceptance-tests
 - sync-integration-tests
-- upgrade
+- upgrade-kubecf
 - stratos
 - destroy-kubecf
 backends:

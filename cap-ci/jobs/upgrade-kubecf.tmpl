@@ -1,5 +1,5 @@
-{{ define "jobs_upgrade" }}
-- name: upgrade-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
+{{ define "jobs_upgrade-kubecf" }}
+- name: upgrade-kubecf-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
   serial_groups: [{{ .scheduler }}-{{ .backend }}-{{ .avail }}]
   public: false
   plan:
@@ -12,7 +12,7 @@
     - {{ index .jobs_enabled (sub .position 1) }}-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
 {{ end }}
     trigger: true
-  - task: upgrade-{{ .scheduler }}
+  - task: upgrade-kubecf-{{ .scheduler }}
     privileged: true
     timeout: 5h30m
     input_mapping:
@@ -50,5 +50,5 @@
           - |
             {{- tmpl.Exec "scripts_obtain_kubeconfig" | indent 12 }}
             {{- tmpl.Exec ( print "scripts_import_" .backend ) | indent 12}}
-            {{- tmpl.Exec "scripts_obtain_upgrade" | indent 12 }}
+            {{- tmpl.Exec "scripts_obtain_upgrade_kubecf" | indent 12 }}
 {{ end }}

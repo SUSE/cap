@@ -1,5 +1,5 @@
-{{ define "jobs_deploy" }}
-- name: deploy-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
+{{ define "jobs_deploy-kubecf" }}
+- name: deploy-kubecf-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
   public: false
   plan:
   - get: s3.kubecf-bundle
@@ -12,7 +12,7 @@
   - put: {{ .backend }}-pool.kube-hosts
     params: {acquire: true}
     timeout: 2m
-  - task: deploy
+  - task: deploy-kubecf
     privileged: true
     timeout: 2h30m
     input_mapping:
@@ -53,5 +53,5 @@
           - |
             {{- tmpl.Exec "scripts_obtain_kubeconfig" | indent 12 }}
             {{- tmpl.Exec ( print "scripts_import_" .backend ) | indent 12}}
-            {{- tmpl.Exec "scripts_deploy"| indent 12}}
+            {{- tmpl.Exec "scripts_deploy_kubecf"| indent 12}}
 {{ end }}

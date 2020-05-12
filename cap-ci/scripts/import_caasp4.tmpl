@@ -1,5 +1,5 @@
 {{ define "scripts_import_caasp4" }}
-# create buildfolder prepared for caasp4os
+{{- /* create buildfolder prepared for caasp4os */ -}}
 export BACKEND=caasp4os
 export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
 make kubeconfig
