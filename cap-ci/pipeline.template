@@ -287,11 +287,15 @@ jobs:
           - |
             {{- print $create_k8s }}
   - put: {{ $backend }}-pool.kube-hosts
-    params: {add_claimed: kubeconfig-pool}
-    timeout: 2m
+    params:
+      add_claimed: kubeconfig-pool
+      depth: 1
+    timeout: 6m
   - put: tfstate-pool
-    params: {add_claimed: tfstate-pool}
-    timeout: 2m
+    params:
+      add_claimed: tfstate-pool
+      depth: 1
+    timeout: 6m
   on_failure:
     do:
       - task: delete-k8s
@@ -339,9 +343,13 @@ jobs:
                 {{- end }}
                 {{- print $delete_k8s }}
       - put: {{ $backend }}-pool.kube-hosts
-        params: {remove: {{ $backend }}-pool.kube-hosts}
+        params:
+          remove: {{ $backend }}-pool.kube-hosts
+          depth: 1
       - put: tfstate-pool
-        params: {remove: tfstate-pool}
+        params:
+          remove: tfstate-pool
+          depth: 1
 {{ end }}
 
 {{- if index $config.jobs "deploy" }}
@@ -371,8 +379,10 @@ jobs:
     - create-k8s-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   {{- else }}
   - put: {{ $backend }}-pool.kube-hosts
-    params: {acquire: true}
-    timeout: 2m
+    params:
+      acquire: true
+      depth: 1
+    timeout: 6m
   {{- end }}
   - task: deploy
     privileged: true
@@ -478,9 +488,13 @@ jobs:
                 {{- end }}
                 {{- print $delete_k8s }}
       - put: {{ $backend }}-pool.kube-hosts
-        params: {remove: {{ $backend }}-pool.kube-hosts}
+        params:
+          remove: {{ $backend }}-pool.kube-hosts
+          depth: 1
       - put: tfstate-pool
-        params: {remove: tfstate-pool}
+        params:
+          remove: tfstate-pool
+          depth: 1
   {{- end }}
 {{ end }}
 
@@ -596,9 +610,13 @@ jobs:
                 {{- end }}
                 {{- print $delete_k8s }}
       - put: {{ $backend }}-pool.kube-hosts
-        params: {remove: {{ $backend }}-pool.kube-hosts}
+        params:
+          remove: {{ $backend }}-pool.kube-hosts
+          depth: 1
       - put: tfstate-pool
-        params: {remove: tfstate-pool}
+        params:
+          remove: tfstate-pool
+          depth: 1
   {{- end }}
 {{ end }}
 
@@ -714,9 +732,13 @@ jobs:
                 {{- end }}
                 {{- print $delete_k8s }}
       - put: {{ $backend }}-pool.kube-hosts
-        params: {remove: {{ $backend }}-pool.kube-hosts}
+        params:
+          remove: {{ $backend }}-pool.kube-hosts
+          depth: 1
       - put: tfstate-pool
-        params: {remove: tfstate-pool}
+        params:
+          remove: tfstate-pool
+          depth: 1
   {{- end }}
 {{ end }}
 
@@ -832,9 +854,13 @@ jobs:
                 {{- end }}
                 {{- print $delete_k8s }}
       - put: {{ $backend }}-pool.kube-hosts
-        params: {remove: {{ $backend }}-pool.kube-hosts}
+        params:
+          remove: {{ $backend }}-pool.kube-hosts
+          depth: 1
       - put: tfstate-pool
-        params: {remove: tfstate-pool}
+        params:
+          remove: tfstate-pool
+          depth: 1
   {{- end }}
 {{ end }}
 
@@ -950,9 +976,13 @@ jobs:
                 {{- end }}
                 {{- print $delete_k8s }}
       - put: {{ $backend }}-pool.kube-hosts
-        params: {remove: {{ $backend }}-pool.kube-hosts}
+        params:
+          remove: {{ $backend }}-pool.kube-hosts
+          depth: 1
       - put: tfstate-pool
-        params: {remove: tfstate-pool}
+        params:
+          remove: tfstate-pool
+          depth: 1
   {{- end }}
 {{ end }}
 
@@ -1073,9 +1103,13 @@ jobs:
                 {{- end }}
                 {{- print $delete_k8s }}
       - put: {{ $backend }}-pool.kube-hosts
-        params: {remove: {{ $backend }}-pool.kube-hosts}
+        params:
+          remove: {{ $backend }}-pool.kube-hosts
+          depth: 1
       - put: tfstate-pool
-        params: {remove: tfstate-pool}
+        params:
+          remove: tfstate-pool
+          depth: 1
   {{- end }}
 {{ end }}
 
@@ -1195,9 +1229,13 @@ jobs:
                 {{- end }}
                 {{- print $delete_k8s }}
       - put: {{ $backend }}-pool.kube-hosts
-        params: {remove: {{ $backend }}-pool.kube-hosts}
+        params:
+          remove: {{ $backend }}-pool.kube-hosts
+          depth: 1
       - put: tfstate-pool
-        params: {remove: tfstate-pool}
+        params:
+          remove: tfstate-pool
+          depth: 1
   {{- end }}
 {{ end }}
 
