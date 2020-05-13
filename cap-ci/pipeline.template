@@ -56,11 +56,16 @@ resources:
 - name: s3.kubecf-bundle
   type: s3
   source:
-    bucket: kubecf
+    bucket: {{ $config.s3bucket }}
     access_key_id: ((aws-access-key))
     secret_access_key: ((aws-secret-key))
-    region_name: us-west-2
+    {{- if eq $config.s3bucket "kubecf" }}
     regexp: kubecf-bundle-v(.*).tgz
+    region_name: us-west-2
+    {{- else if eq $config.s3bucket "cap-release-artifacts" }}
+    regexp: kubecf-(.*).tgz
+    region_name: us-east-1
+    {{- end }}
 
 - name: helm-chart.stratos-chart
   type: helm-chart

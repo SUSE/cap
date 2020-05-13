@@ -13,10 +13,18 @@ tests KubeCF on Kubernetes distributions CaaSP4, GKE, EKS, AKS:
 
     $ ./create_pipeline.sh <concourse-target> <pipeline-name>
 
-Configure all the required options in `config.yaml`.
+Configure all the required options in a `<pipeline name>.yaml`.
 The new `<pipeline-name>` pipeline will make use of kuceconfigs uploaded to EKCP
 (http://ain.arch.suse.de:8030/ui) named  `yourname-*`, e.g. `yourname-diego-caasp4-ha`.
 So make sure to upload your own kubeconfig from your own cluster, see below.
+
+E.g: to deploy the `cap-pre-release` pipeline:
+
+    $ ./create_pipeline.sh <concourse-target> cap-pre-release
+
+E.g: to deploy the `cap-release` pipeline:
+
+    $ ./create_pipeline.sh <concourse-target> cap-release
 
 # Implementation
 

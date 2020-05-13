@@ -1,4 +1,5 @@
-create-k8s: true
+create-k8s: false
+s3bucket: cap-release-artifacts
 
 # Currently only accepts disabling jobs if all later jobs are also disabled.
 # Otherwise the job dependencies in pipeline.template(listed in passed) have to be changed manually.
