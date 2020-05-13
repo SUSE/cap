@@ -13,7 +13,7 @@ fi
 
 usage() {
     echo "USAGE:"
-    echo "./create_cap-release_pipeline.sh <concourse-target> <pipeline-name>"
+    echo "$0 <concourse-target> <pipeline-name>"
 }
 
 if [[ -z "$1" ]]; then
@@ -38,4 +38,4 @@ fly_args=(
     "--pipeline=${PIPELINE}"
 )
 
-fly "${fly_args[@]}" --config <(gomplate --verbose --datasource config.yaml --file pipeline.template)
+fly "${fly_args[@]}" --config <(gomplate --verbose --datasource config="$PIPELINE".yaml --file pipeline.template)
