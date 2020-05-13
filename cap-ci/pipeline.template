@@ -390,10 +390,13 @@ jobs:
       - name: s3.kubecf-bundle
       - name: pool.kube-hosts
       params:
-        BRAIN_VERBOSE: {{ $config.brain.verbose }}
-        BRAIN_INORDER: {{ $config.brain.inorder }}
-        BRAIN_INCLUDE: "{{ $config.brain.include }}"
-        BRAIN_EXCLUDE: "{{ $config.brain.exclude }}"
+        BRAIN_VERBOSE: {{ index $config.brain "verbose" }}
+        BRAIN_INORDER: {{ index $config.brain "inorder" }}
+        BRAIN_INCLUDE: "{{ index $config.brain "include" }}"
+        BRAIN_EXCLUDE: "{{ index $config.brain "exclude" }}"
+        CATS_NODES: {{ index $config.cats "nodes" }}
+        CATS_FLAKE_ATTEMPTS: {{ index $config.cats "flake-attempts" }}
+        CATS_TIMEOUT_SCALE: {{ index $config.cats "timeout-scale" }}
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3

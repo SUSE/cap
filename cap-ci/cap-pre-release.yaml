@@ -31,3 +31,7 @@ brain:
   inorder: false
   include: ""
   exclude: ""
+cats:
+  nodes: 3
+  flake-attempts: 5
+  timeout-scale: "3.0"
