@@ -32,7 +32,7 @@ else
     if [[ "$2" == "cap-release" || "$2" == "cap-pre-release" ]]; then
         printf "This will modify the production pipeline: $2. Are you sure you want to proceed?(yes/no): "
         read -r ans
-        if [[ "$ans" == "yes" ]]; then
+        if [[ "$ans" == "y" || "$ans" == "yes" ]]; then
             export PIPELINE=$2
         else
             echo "Operation aborted."
