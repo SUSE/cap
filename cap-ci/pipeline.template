@@ -67,6 +67,7 @@ resources:
     region_name: us-east-1
     {{- end }}
 
+{{- if $config.jobs.stratos }}
 - name: helm-chart.stratos-chart
   type: helm-chart
   source:
@@ -82,6 +83,7 @@ resources:
     repos:
     - name: stratos-metrics
       url: http://opensource.suse.com/stratos-metrics/
+{{ end }}
 
 {{- if index $config "create-k8s" }}
 - name: tfstate-pool
@@ -254,10 +256,12 @@ jobs:
   plan:
   - get: s3.kubecf-bundle
     trigger: true
+  {{- if $config.jobs.stratos }}
   - get: helm-chart.stratos-chart
     trigger: true
   - get: helm-chart.stratos-metrics-chart
     trigger: true
+  {{ end }}
   - get: catapult
   - task: create-k8s
     {{- if has $config.workertags $backend }}
@@ -366,6 +370,7 @@ jobs:
     {{- if not (index $config "create-k8s") }}
     trigger: true
     {{- end }}
+  {{- if $config.jobs.stratos }}
   - get: helm-chart.stratos-chart
     {{- if not (index $config "create-k8s") }}
     trigger: true
@@ -374,6 +379,7 @@ jobs:
     {{- if not (index $config "create-k8s") }}
     trigger: true
     {{- end }}
+  {{ end }}
   - get: catapult
   {{- if index $config "create-k8s" }}
   - get: {{ $backend }}-pool.kube-hosts
