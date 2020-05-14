@@ -260,6 +260,9 @@ jobs:
     trigger: true
   - get: catapult
   - task: create-k8s
+    {{- if has $config.workertags $backend }}
+    tags: [$config.workertags.$backend]
+    {{- end }}
     privileged: true
     timeout: 2h30m
     config:
@@ -299,6 +302,9 @@ jobs:
   on_failure:
     do:
       - task: delete-k8s
+        {{- if has $config.workertags $backend }}
+        tags: [$config.workertags.$backend]
+        {{- end }}
         privileged: true
         timeout: 2h30m
         input_mapping:
@@ -385,6 +391,9 @@ jobs:
     timeout: 6m
   {{- end }}
   - task: deploy
+    {{- if has $config.workertags $backend }}
+    tags: [{{ index $config.workertags $backend }}]
+    {{- end }}
     privileged: true
     timeout: 2h30m
     input_mapping:
@@ -444,6 +453,9 @@ jobs:
   on_failure:
     do:
       - task: delete-k8s
+        {{- if has $config.workertags $backend }}
+        tags: [{{ index $config.workertags $backend }}]
+        {{- end }}
         privileged: true
         timeout: 2h30m
         input_mapping:
@@ -514,6 +526,9 @@ jobs:
     - deploy-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   {{- end }}
   - task: test-{{ $scheduler }}
+    {{- if has $config.workertags $backend }}
+    tags: [{{ index $config.workertags $backend }}]
+    {{- end }}
     privileged: true
     timeout: 1h30m
     input_mapping:
@@ -566,6 +581,9 @@ jobs:
   on_failure:
     do:
       - task: delete-k8s
+        {{- if has $config.workertags $backend }}
+        tags: [{{ index $config.workertags $backend }}]
+        {{- end }}
         privileged: true
         timeout: 2h30m
         input_mapping:
@@ -636,6 +654,9 @@ jobs:
     - smoke-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   {{- end }}
   - task: test-{{ $scheduler }}
+    {{- if has $config.workertags $backend }}
+    tags: [{{ index $config.workertags $backend }}]
+    {{- end }}
     privileged: true
     timeout: 5h30m
     input_mapping:
@@ -688,6 +709,9 @@ jobs:
   on_failure:
     do:
       - task: delete-k8s
+        {{- if has $config.workertags $backend }}
+        tags: [{{ index $config.workertags $backend }}]
+        {{- end }}
         privileged: true
         timeout: 2h30m
         input_mapping:
@@ -758,6 +782,9 @@ jobs:
     - cf-acceptance-tests-brain-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   {{- end }}
   - task: test-{{ $scheduler }}
+    {{- if has $config.workertags $backend }}
+    tags: [{{ index $config.workertags $backend }}]
+    {{- end }}
     privileged: true
     timeout: 5h30m
     input_mapping:
@@ -810,6 +837,9 @@ jobs:
   on_failure:
     do:
       - task: delete-k8s
+        {{- if has $config.workertags $backend }}
+        tags: [{{ index $config.workertags $backend }}]
+        {{- end }}
         privileged: true
         timeout: 2h30m
         input_mapping:
@@ -880,6 +910,9 @@ jobs:
     - cf-acceptance-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   {{- end }}
   - task: test-{{ $scheduler }}
+    {{- if has $config.workertags $backend }}
+    tags: [{{ index $config.workertags $backend }}]
+    {{- end }}
     privileged: true
     timeout: 5h30m
     input_mapping:
@@ -932,6 +965,9 @@ jobs:
   on_failure:
     do:
       - task: delete-k8s
+        {{- if has $config.workertags $backend }}
+        tags: [{{ index $config.workertags $backend }}]
+        {{- end }}
         privileged: true
         timeout: 2h30m
         input_mapping:
@@ -1004,6 +1040,9 @@ jobs:
     - sync-integration-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   {{- end }}
   - task: upgrade-{{ $scheduler }}
+    {{- if has $config.workertags $backend }}
+    tags: [{{ index $config.workertags $backend }}]
+    {{- end }}
     privileged: true
     timeout: 5h30m
     input_mapping:
@@ -1059,6 +1098,9 @@ jobs:
   on_failure:
     do:
       - task: delete-k8s
+        {{- if has $config.workertags $backend }}
+        tags: [{{ index $config.workertags $backend }}]
+        {{- end }}
         privileged: true
         timeout: 2h30m
         input_mapping:
@@ -1131,6 +1173,9 @@ jobs:
     - upgrade-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   {{- end }}
   - task: stratos-{{ $scheduler }}
+    {{- if has $config.workertags $backend }}
+    tags: [{{ index $config.workertags $backend }}]
+    {{- end }}
     privileged: true
     timeout: 5h30m
     input_mapping:
@@ -1185,6 +1230,9 @@ jobs:
   ensure:
     do:
       - task: delete-k8s
+        {{- if has $config.workertags $backend }}
+        tags: [{{ index $config.workertags $backend }}]
+        {{- end }}
         privileged: true
         timeout: 2h30m
         input_mapping:
