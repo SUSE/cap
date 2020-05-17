@@ -56,11 +56,16 @@ resources:
 - name: s3.kubecf-bundle
   type: s3
   source:
-    bucket: kubecf
+    bucket: {{ $config.s3bucket }}
     access_key_id: ((aws-access-key))
     secret_access_key: ((aws-secret-key))
-    region_name: us-west-2
+    {{- if eq $config.s3bucket "kubecf" }}
     regexp: kubecf-bundle-v(.*).tgz
+    region_name: us-west-2
+    {{- else if eq $config.s3bucket "cap-release-artifacts" }}
+    regexp: kubecf-(.*).tgz
+    region_name: us-east-1
+    {{- end }}
 
 - name: helm-chart.stratos-chart
   type: helm-chart
@@ -272,6 +277,9 @@ jobs:
     trigger: true
   - get: catapult
   - task: create-k8s
+    {{- if has $config.workertags $backend }}
+    tags: [$config.workertags.$backend]
+    {{- end }}
     privileged: true
     timeout: 2h30m
     config:
@@ -299,14 +307,21 @@ jobs:
           - |
             {{- print $create_k8s }}
   - put: {{ $backend }}-pool.kube-hosts
-    params: {add_claimed: kubeconfig-pool}
-    timeout: 2m
+    params:
+      add_claimed: kubeconfig-pool
+      depth: 1
+    timeout: 6m
   - put: tfstate-pool
-    params: {add_claimed: tfstate-pool}
-    timeout: 2m
+    params:
+      add_claimed: tfstate-pool
+      depth: 1
+    timeout: 6m
   on_failure:
     do:
       - task: delete-k8s
+        {{- if has $config.workertags $backend }}
+        tags: [$config.workertags.$backend]
+        {{- end }}
         privileged: true
         timeout: 2h30m
         input_mapping:
@@ -351,9 +366,13 @@ jobs:
                 {{- end }}
                 {{- print $delete_k8s }}
       - put: {{ $backend }}-pool.kube-hosts
-        params: {remove: {{ $backend }}-pool.kube-hosts}
+        params:
+          remove: {{ $backend }}-pool.kube-hosts
+          depth: 1
       - put: tfstate-pool
-        params: {remove: tfstate-pool}
+        params:
+          remove: tfstate-pool
+          depth: 1
 {{ end }}
 
 {{- if index $config.jobs "deploy-kubecf" }}
@@ -383,10 +402,15 @@ jobs:
     - create-k8s-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   {{- else }}
   - put: {{ $backend }}-pool.kube-hosts
-    params: {acquire: true}
-    timeout: 2m
+    params:
+      acquire: true
+      depth: 1
+    timeout: 6m
   {{- end }}
   - task: deploy-kubecf
+    {{- if has $config.workertags $backend }}
+    tags: [{{ index $config.workertags $backend }}]
+    {{- end }}
     privileged: true
     timeout: 2h30m
     input_mapping:
@@ -402,10 +426,13 @@ jobs:
       - name: s3.kubecf-bundle
       - name: pool.kube-hosts
       params:
-        BRAIN_VERBOSE: {{ $config.brain.verbose }}
-        BRAIN_INORDER: {{ $config.brain.inorder }}
-        BRAIN_INCLUDE: "{{ $config.brain.include }}"
-        BRAIN_EXCLUDE: "{{ $config.brain.exclude }}"
+        BRAIN_VERBOSE: {{ index $config.brain "verbose" }}
+        BRAIN_INORDER: {{ index $config.brain "inorder" }}
+        BRAIN_INCLUDE: "{{ index $config.brain "include" }}"
+        BRAIN_EXCLUDE: "{{ index $config.brain "exclude" }}"
+        CATS_NODES: {{ index $config.cats "nodes" }}
+        CATS_FLAKE_ATTEMPTS: {{ index $config.cats "flake-attempts" }}
+        CATS_TIMEOUT_SCALE: {{ index $config.cats "timeout-scale" }}
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
         DEFAULT_STACK: cflinuxfs3
@@ -443,6 +470,9 @@ jobs:
   on_failure:
     do:
       - task: delete-k8s
+        {{- if has $config.workertags $backend }}
+        tags: [{{ index $config.workertags $backend }}]
+        {{- end }}
         privileged: true
         timeout: 2h30m
         input_mapping:
@@ -487,9 +517,13 @@ jobs:
                 {{- end }}
                 {{- print $delete_k8s }}
       - put: {{ $backend }}-pool.kube-hosts
-        params: {remove: {{ $backend }}-pool.kube-hosts}
+        params:
+          remove: {{ $backend }}-pool.kube-hosts
+          depth: 1
       - put: tfstate-pool
-        params: {remove: tfstate-pool}
+        params:
+          remove: tfstate-pool
+          depth: 1
   {{- end }}
 {{ end }}
 
@@ -509,6 +543,9 @@ jobs:
     - deploy-kubecf-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   {{- end }}
   - task: test-{{ $scheduler }}
+    {{- if has $config.workertags $backend }}
+    tags: [{{ index $config.workertags $backend }}]
+    {{- end }}
     privileged: true
     timeout: 1h30m
     input_mapping:
@@ -561,6 +598,9 @@ jobs:
   on_failure:
     do:
       - task: delete-k8s
+        {{- if has $config.workertags $backend }}
+        tags: [{{ index $config.workertags $backend }}]
+        {{- end }}
         privileged: true
         timeout: 2h30m
         input_mapping:
@@ -605,9 +645,13 @@ jobs:
                 {{- end }}
                 {{- print $delete_k8s }}
       - put: {{ $backend }}-pool.kube-hosts
-        params: {remove: {{ $backend }}-pool.kube-hosts}
+        params:
+          remove: {{ $backend }}-pool.kube-hosts
+          depth: 1
       - put: tfstate-pool
-        params: {remove: tfstate-pool}
+        params:
+          remove: tfstate-pool
+          depth: 1
   {{- end }}
 {{ end }}
 
@@ -627,6 +671,9 @@ jobs:
     - smoke-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   {{- end }}
   - task: test-{{ $scheduler }}
+    {{- if has $config.workertags $backend }}
+    tags: [{{ index $config.workertags $backend }}]
+    {{- end }}
     privileged: true
     timeout: 5h30m
     input_mapping:
@@ -679,6 +726,9 @@ jobs:
   on_failure:
     do:
       - task: delete-k8s
+        {{- if has $config.workertags $backend }}
+        tags: [{{ index $config.workertags $backend }}]
+        {{- end }}
         privileged: true
         timeout: 2h30m
         input_mapping:
@@ -723,9 +773,13 @@ jobs:
                 {{- end }}
                 {{- print $delete_k8s }}
       - put: {{ $backend }}-pool.kube-hosts
-        params: {remove: {{ $backend }}-pool.kube-hosts}
+        params:
+          remove: {{ $backend }}-pool.kube-hosts
+          depth: 1
       - put: tfstate-pool
-        params: {remove: tfstate-pool}
+        params:
+          remove: tfstate-pool
+          depth: 1
   {{- end }}
 {{ end }}
 
@@ -745,6 +799,9 @@ jobs:
     - cf-acceptance-tests-brain-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   {{- end }}
   - task: test-{{ $scheduler }}
+    {{- if has $config.workertags $backend }}
+    tags: [{{ index $config.workertags $backend }}]
+    {{- end }}
     privileged: true
     timeout: 5h30m
     input_mapping:
@@ -797,6 +854,9 @@ jobs:
   on_failure:
     do:
       - task: delete-k8s
+        {{- if has $config.workertags $backend }}
+        tags: [{{ index $config.workertags $backend }}]
+        {{- end }}
         privileged: true
         timeout: 2h30m
         input_mapping:
@@ -841,9 +901,13 @@ jobs:
                 {{- end }}
                 {{- print $delete_k8s }}
       - put: {{ $backend }}-pool.kube-hosts
-        params: {remove: {{ $backend }}-pool.kube-hosts}
+        params:
+          remove: {{ $backend }}-pool.kube-hosts
+          depth: 1
       - put: tfstate-pool
-        params: {remove: tfstate-pool}
+        params:
+          remove: tfstate-pool
+          depth: 1
   {{- end }}
 {{ end }}
 
@@ -863,6 +927,9 @@ jobs:
     - cf-acceptance-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   {{- end }}
   - task: test-{{ $scheduler }}
+    {{- if has $config.workertags $backend }}
+    tags: [{{ index $config.workertags $backend }}]
+    {{- end }}
     privileged: true
     timeout: 5h30m
     input_mapping:
@@ -915,6 +982,9 @@ jobs:
   on_failure:
     do:
       - task: delete-k8s
+        {{- if has $config.workertags $backend }}
+        tags: [{{ index $config.workertags $backend }}]
+        {{- end }}
         privileged: true
         timeout: 2h30m
         input_mapping:
@@ -959,9 +1029,13 @@ jobs:
                 {{- end }}
                 {{- print $delete_k8s }}
       - put: {{ $backend }}-pool.kube-hosts
-        params: {remove: {{ $backend }}-pool.kube-hosts}
+        params:
+          remove: {{ $backend }}-pool.kube-hosts
+          depth: 1
       - put: tfstate-pool
-        params: {remove: tfstate-pool}
+        params:
+          remove: tfstate-pool
+          depth: 1
   {{- end }}
 {{ end }}
 
@@ -983,6 +1057,9 @@ jobs:
     - sync-integration-tests-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   {{- end }}
   - task: upgrade-{{ $scheduler }}
+    {{- if has $config.workertags $backend }}
+    tags: [{{ index $config.workertags $backend }}]
+    {{- end }}
     privileged: true
     timeout: 5h30m
     input_mapping:
@@ -1038,6 +1115,9 @@ jobs:
   on_failure:
     do:
       - task: delete-k8s
+        {{- if has $config.workertags $backend }}
+        tags: [{{ index $config.workertags $backend }}]
+        {{- end }}
         privileged: true
         timeout: 2h30m
         input_mapping:
@@ -1082,9 +1162,13 @@ jobs:
                 {{- end }}
                 {{- print $delete_k8s }}
       - put: {{ $backend }}-pool.kube-hosts
-        params: {remove: {{ $backend }}-pool.kube-hosts}
+        params:
+          remove: {{ $backend }}-pool.kube-hosts
+          depth: 1
       - put: tfstate-pool
-        params: {remove: tfstate-pool}
+        params:
+          remove: tfstate-pool
+          depth: 1
   {{- end }}
 {{ end }}
 
@@ -1106,6 +1190,9 @@ jobs:
     - upgrade-{{ $scheduler }}-{{ $backend }}-{{ $option }}
   {{- end }}
   - task: stratos-{{ $scheduler }}
+    {{- if has $config.workertags $backend }}
+    tags: [{{ index $config.workertags $backend }}]
+    {{- end }}
     privileged: true
     timeout: 5h30m
     input_mapping:
@@ -1212,6 +1299,9 @@ jobs:
   ensure:
     do:
       - task: delete-k8s
+        {{- if has $config.workertags $backend }}
+        tags: [{{ index $config.workertags $backend }}]
+        {{- end }}
         privileged: true
         timeout: 2h30m
         input_mapping:
@@ -1256,9 +1346,13 @@ jobs:
                 {{- end }}
                 {{- print $delete_k8s }}
       - put: {{ $backend }}-pool.kube-hosts
-        params: {remove: {{ $backend }}-pool.kube-hosts}
+        params:
+          remove: {{ $backend }}-pool.kube-hosts
+          depth: 1
       - put: tfstate-pool
-        params: {remove: tfstate-pool}
+        params:
+          remove: tfstate-pool
+          depth: 1
   {{ else }}
   - put: {{ $backend }}-pool.kube-hosts
     params: {release: {{ $backend }}-pool.kube-hosts}

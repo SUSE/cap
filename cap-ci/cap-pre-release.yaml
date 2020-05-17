@@ -1,4 +1,8 @@
-create-k8s: true
+create-k8s: false
+s3bucket: kubecf
+
+workertags:
+  caasp4: suse-internal
 
 # Currently only accepts disabling jobs if all later jobs are also disabled.
 # Otherwise the job dependencies in pipeline.template(listed in passed) have to be changed manually.
@@ -31,3 +35,7 @@ brain:
   inorder: false
   include: ""
   exclude: ""
+cats:
+  nodes: 3
+  flake-attempts: 5
+  timeout-scale: "3.0"
