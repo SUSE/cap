@@ -2,7 +2,7 @@ create-k8s: false
 s3bucket: cap-release-artifacts
 
 workertags:
-  caasp4: suse-internal
+  # caasp4: suse-internal
 
 # Currently only accepts disabling jobs if all later jobs are also disabled.
 # Otherwise the job dependencies in pipeline.template(listed in passed) have to be changed manually.
