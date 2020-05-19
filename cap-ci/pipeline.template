@@ -263,7 +263,6 @@ jobs:
     {{- if has $config.workertags $backend }}
     tags: [$config.workertags.$backend]
     {{- end }}
-    privileged: true
     timeout: 2h30m
     config:
       platform: linux
@@ -305,7 +304,6 @@ jobs:
         {{- if has $config.workertags $backend }}
         tags: [$config.workertags.$backend]
         {{- end }}
-        privileged: true
         timeout: 2h30m
         input_mapping:
           pool.kube-hosts: {{ $backend }}-pool.kube-hosts
@@ -394,7 +392,6 @@ jobs:
     {{- if has $config.workertags $backend }}
     tags: [{{ index $config.workertags $backend }}]
     {{- end }}
-    privileged: true
     timeout: 2h30m
     input_mapping:
       pool.kube-hosts: {{ $backend }}-pool.kube-hosts
@@ -456,7 +453,6 @@ jobs:
         {{- if has $config.workertags $backend }}
         tags: [{{ index $config.workertags $backend }}]
         {{- end }}
-        privileged: true
         timeout: 2h30m
         input_mapping:
           pool.kube-hosts: {{ $backend }}-pool.kube-hosts
@@ -529,7 +525,6 @@ jobs:
     {{- if has $config.workertags $backend }}
     tags: [{{ index $config.workertags $backend }}]
     {{- end }}
-    privileged: true
     timeout: 1h30m
     input_mapping:
       pool.kube-hosts: {{ $backend }}-pool.kube-hosts
@@ -584,7 +579,6 @@ jobs:
         {{- if has $config.workertags $backend }}
         tags: [{{ index $config.workertags $backend }}]
         {{- end }}
-        privileged: true
         timeout: 2h30m
         input_mapping:
           pool.kube-hosts: {{ $backend }}-pool.kube-hosts
@@ -657,7 +651,6 @@ jobs:
     {{- if has $config.workertags $backend }}
     tags: [{{ index $config.workertags $backend }}]
     {{- end }}
-    privileged: true
     timeout: 5h30m
     input_mapping:
       pool.kube-hosts: {{ $backend }}-pool.kube-hosts
@@ -712,7 +705,6 @@ jobs:
         {{- if has $config.workertags $backend }}
         tags: [{{ index $config.workertags $backend }}]
         {{- end }}
-        privileged: true
         timeout: 2h30m
         input_mapping:
           pool.kube-hosts: {{ $backend }}-pool.kube-hosts
@@ -785,7 +777,6 @@ jobs:
     {{- if has $config.workertags $backend }}
     tags: [{{ index $config.workertags $backend }}]
     {{- end }}
-    privileged: true
     timeout: 5h30m
     input_mapping:
       pool.kube-hosts: {{ $backend }}-pool.kube-hosts
@@ -840,7 +831,6 @@ jobs:
         {{- if has $config.workertags $backend }}
         tags: [{{ index $config.workertags $backend }}]
         {{- end }}
-        privileged: true
         timeout: 2h30m
         input_mapping:
           pool.kube-hosts: {{ $backend }}-pool.kube-hosts
@@ -913,7 +903,6 @@ jobs:
     {{- if has $config.workertags $backend }}
     tags: [{{ index $config.workertags $backend }}]
     {{- end }}
-    privileged: true
     timeout: 5h30m
     input_mapping:
       pool.kube-hosts: {{ $backend }}-pool.kube-hosts
@@ -968,7 +957,6 @@ jobs:
         {{- if has $config.workertags $backend }}
         tags: [{{ index $config.workertags $backend }}]
         {{- end }}
-        privileged: true
         timeout: 2h30m
         input_mapping:
           pool.kube-hosts: {{ $backend }}-pool.kube-hosts
@@ -1043,7 +1031,6 @@ jobs:
     {{- if has $config.workertags $backend }}
     tags: [{{ index $config.workertags $backend }}]
     {{- end }}
-    privileged: true
     timeout: 5h30m
     input_mapping:
       pool.kube-hosts: {{ $backend }}-pool.kube-hosts
@@ -1101,7 +1088,6 @@ jobs:
         {{- if has $config.workertags $backend }}
         tags: [{{ index $config.workertags $backend }}]
         {{- end }}
-        privileged: true
         timeout: 2h30m
         input_mapping:
           pool.kube-hosts: {{ $backend }}-pool.kube-hosts
@@ -1176,7 +1162,6 @@ jobs:
     {{- if has $config.workertags $backend }}
     tags: [{{ index $config.workertags $backend }}]
     {{- end }}
-    privileged: true
     timeout: 5h30m
     input_mapping:
       pool.kube-hosts: {{ $backend }}-pool.kube-hosts
@@ -1233,7 +1218,6 @@ jobs:
         {{- if has $config.workertags $backend }}
         tags: [{{ index $config.workertags $backend }}]
         {{- end }}
-        privileged: true
         timeout: 2h30m
         input_mapping:
           pool.kube-hosts: {{ $backend }}-pool.kube-hosts
