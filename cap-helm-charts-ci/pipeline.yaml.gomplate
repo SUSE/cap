@@ -34,7 +34,6 @@ jobs:
     - get: helm-charts-repo
   - do:
     - task: create_pr
-      privileged: true
       params:
         GITHUB_TOKEN:  {{ index (datasource "concourse-secrets") "github-access-token" }}
         GITHUB_PRIVATE_KEY:  {{ index (datasource "concourse-secrets") "github-private-key" | data.ToYAML | indent 7 }}
