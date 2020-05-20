@@ -39,6 +39,7 @@ jobs:
   plan:
   - in_parallel:
     - get: ci
+      passed: [push-to-obs]
     - get: s3.chart-bundle
       passed: [push-to-obs]
   - do:
