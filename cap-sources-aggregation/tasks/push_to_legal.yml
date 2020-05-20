@@ -9,10 +9,8 @@ inputs:
 - name: s3.chart-bundle
 params:
   CHART_BUNDLE_DIR: ~
-  S3_BASE_URL: ~
   OBS_PARENT_PROJECT: ~
   OBS_USERNAME: ~
   OBS_PASSWORD: ~
-  OBS_STEMCELL_PROJECT: ~
 run:
-  path: ci/cap-sources-aggregation/tasks/push_to_obs.sh
+  path: ci/cap-sources-aggregation/tasks/push_to_legal.sh
