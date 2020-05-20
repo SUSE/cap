@@ -1,0 +1,36 @@
+# This pipeline is responsible for pushing release image sources for a specific
+# cap bundle from s3 to OBS to make it available for legal scanning
+---
+resources:
+- name: ci
+  type: git
+  source:
+    uri: {{ .ci_uri }}
+    branch: {{ .ci_branch }}
+
+- name: s3.chart-bundle
+  type: s3
+  source:
+    bucket: {{ .bucket }}
+    region_name: {{ .region }}
+    access_key_id: {{ index (datasource "concourse-secrets") "aws-capbot-access-key" }}
+    secret_access_key: {{ index (datasource "concourse-secrets") "aws-capbot-secret-key" }}
+    regexp: legal_scan/kubecf-(.*).tgz
+
+jobs:
+- name: push-to-obs
+  plan:
+  - in_parallel:
+    - get: ci
+    - get: s3.chart-bundle
+      trigger: true
+  - do:
+    - task: push_to_obs
+      params:
+        CHART_BUNDLE_DIR: s3.chart-bundle
+        S3_BASE_URL: {{ .sources_base_url }}
+        OBS_PARENT_PROJECT: {{ .obs_parent_project }}
+        OBS_USERNAME: {{ index (datasource "concourse-secrets") "obs-username" }}
+        OBS_PASSWORD: {{ index (datasource "concourse-secrets") "obs-password" }}
+        OBS_STEMCELL_PROJECT: {{ .obs_stemcell_project }}
+      file: ci/cap-sources-aggregation/tasks/push_to_obs.yml

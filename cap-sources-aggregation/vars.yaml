@@ -1,0 +1,11 @@
+---
+ci_uri: https://github.com/SUSE/cap.git
+ci_branch: master
+bucket: cap-release-artifacts
+sources_bucket: kubecf-sources
+sources_base_url: https://kubecf-sources.s3.amazonaws.com/bosh-releases/
+obs_parent_project: Cloud:Platform:cap-sources
+region: us-east-1
+github_mail: cf-ci-bot@suse.de
+github_user: suse-cf-ci-bot
+obs_stemcell_project: Cloud:Platform:Fissile-Stemcell/fissile-stemcell
