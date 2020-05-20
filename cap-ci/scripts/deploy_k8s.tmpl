@@ -1,0 +1,21 @@
+{{ define "scripts_deploy_k8s" }}
+            # create k8s cluster
+            export random_variable=$(hexdump -n 8 -e '2/4 "%08x"' /dev/urandom)
+            export AWS_ACCESS_KEY_ID='((aws-ci-chuller-access-key-id))'
+            export AWS_SECRET_ACCESS_KEY='((aws-ci-chuller-secret-access-key))'
+            if [[ ${BACKEND} == "gke" ]]; then
+              printf "%s" '((gke-key-json))' > $PWD/gke-key.json
+              export GKE_CRED_JSON=$PWD/gke-key.json
+              export GKE_CLUSTER_NAME=ci-${BACKEND}-${random_variable}
+              export CLUSTER_NAME=${GKE_CLUSTER_NAME}
+              export TF_KEY=${GKE_CLUSTER_NAME}
+              (cd catapult; make BACKEND=${BACKEND} GKE_CREDS_JSON=$GKE_CRED_JSON GKE_CLUSTER_NAME=${GKE_CLUSTER_NAME} CLUSTER_NAME=${CLUSTER_NAME} TF_KEY=${TF_KEY} k8s)
+              echo ${GKE_CLUSTER_NAME} > kubeconfig-pool/name
+              cp catapult/build${GKE_CLUSTER_NAME}/kubeclusterreference kubeconfig-pool/metadata
+              echo tf-${GKE_CLUSTER_NAME}.zip > tfstate-pool/name
+              cp catapult/build${GKE_CLUSTER_NAME}/tf-setup.zip tfstate-pool/metadata
+            else
+              echo "CI cannot create ${BACKEND} cluster"
+              exit 1
+            fi
+{{ end }}

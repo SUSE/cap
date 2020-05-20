@@ -1,0 +1,15 @@
+{{ define "scripts_deploy_stratos" }}
+{{- /* Attention: PWD = ____/catapult here */ -}}
+{{- /* obtain scf-config-values.yaml for stratos */ -}}
+export QUIET_OUTPUT=true
+export SCF_TESTGROUP=true
+export SCF_OPERATOR=true
+export DOCKER_ORG=cap-staging
+make scf-gen-config
+{{- /* deploy stratos console & metrics */ -}}
+export STRATOS_CHART="$(readlink -f ../helm-chart.stratos-chart/*.tgz)"
+export METRICS_CHART="$(readlink -f ../helm-chart.stratos-metrics-chart/*.tgz)"
+unset DOCKER_ORG # consume docker images from DOCKER_ORG=cap on stratos & metrics
+env | sort | sed -e 's|^|CONFIGURATION: |'
+make stratos metrics
+{{ end }}

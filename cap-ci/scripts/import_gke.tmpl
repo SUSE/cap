@@ -1,0 +1,9 @@
+{{ define "scripts_import_gke" }}
+{{- /* create buildfolder prepared for gke */ -}}
+export BACKEND=gke
+printf "%s" '((gke-key-json))' > $PWD/gke-key.json
+{{- /* GKE var exported here so hijacking doesn't contain them in env */ -}}
+export GKE_CRED_JSON=$PWD/gke-key.json
+export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
+make kubeconfig
+{{ end }}

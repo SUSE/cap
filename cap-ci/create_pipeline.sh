@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -e
 
 # NOTE for now, add your cluster's kubeconfig in git@github.com:SUSE/cf-ci-pools.git on branch ${BACKEND}-kube-hosts in unclaimed folder
@@ -13,7 +12,7 @@ fi
 
 usage() {
     echo "USAGE:"
-    echo "$0 <concourse-target> <pipeline-name>"
+    echo "$0 CONCOURSE_TARGET PIPELINE [PIPELINE_FILE]"
 }
 
 if [[ -z "$1" ]]; then
@@ -29,24 +28,24 @@ if [[ -z "$2" ]]; then
     usage
     exit 1
 else
-    if [[ "$2" == "cap-release" || "$2" == "cap-pre-release" ]]; then
-        printf "This will modify the production pipeline: $2. Are you sure you want to proceed?(yes/no): "
-        read -r ans
-        if [[ "$ans" == "y" || "$ans" == "yes" ]]; then
-            export PIPELINE=$2
-        else
+    export PIPELINE=${2}
+    if [[ "${PIPELINE}" == "cap-release" || "${PIPELINE}" == "cap-pre-release" ]]; then
+        printf "This will modify the production pipeline: ${PIPELINE}. Are you sure you want to proceed?(yes/no): "
+        #read -r ans
+        ans=y #delete
+        if [[ "$ans" != "y" && "$ans" != "yes" ]]; then
             echo "Operation aborted."
             exit 1
         fi
-    else
-        if test -f "$2".yaml; then
-            export PIPELINE=$2
-        else
-            echo "$2.yaml doesn't exist."
-            usage
-            exit 1
-        fi
     fi
+    if test -f "${PIPELINE}".yaml.tmpl; then
+        pipeline_config=${PIPELINE}.yaml.tmpl
+    else
+        echo "Config file ${PIPELINE}.yaml.tmpl doesn't exist."
+        usage
+        exit 1
+    fi
+    
 fi
 
 fly_args=(
@@ -55,4 +54,10 @@ fly_args=(
     "--pipeline=${PIPELINE}"
 )
 
-fly "${fly_args[@]}" --config <(gomplate --verbose --datasource config="$PIPELINE".yaml --file pipeline.template)
+# space-separated paths to template files and directories which contain template files
+template_paths="${pipeline_config} scripts jobs common"
+templates=$(find ${template_paths} -type f -exec echo "--template="{} \;)
+pipeline_file=${3:-pipeline.yaml.tmpl}
+gomplate --verbose ${templates} --file pipeline.yaml.tmpl #delete
+exit #delete
+fly "${fly_args[@]}" --config <(gomplate --verbose ${templates} --file pipeline.yaml.tmpl)

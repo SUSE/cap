@@ -1,26 +1,37 @@
-create-k8s: false
-s3bucket: kubecf
-
+{{ define "config" }}
 workertags:
   # caasp4: suse-internal
 
 # Currently only accepts disabling jobs if all later jobs are also disabled.
 # Otherwise the job dependencies in pipeline.template(listed in passed) have to be changed manually.
 jobs:
-  deploy: true
+  deploy-k8s: false
+  deploy-kubecf: true
   smoke-tests: true
-  cf-acceptance-tests-brain: true
-  cf-acceptance-tests: true
-  sync-integration-tests: true
-  upgrade: true
-  stratos: true
-  clean-kubecf: true
+  cf-acceptance-tests-brain: false
+  cf-acceptance-tests: false
+  sync-integration-tests: false
+  upgrade-kubecf: false
+  deploy-stratos: false
+  destroy-kubecf: true
+  destroy-k8s: true
+jobs_ordered:
+- deploy-k8s
+- deploy-kubecf
+- smoke-tests
+- cf-acceptance-tests-brain
+- cf-acceptance-tests
+- sync-integration-tests
+- upgrade-kubecf
+- deploy-stratos
+- destroy-kubecf
+- destroy-k8s
 backends:
   caasp4: true
   aks: true
   gke: true
   eks: true
-options:
+availabilities:
   sa: true
   ha: true
   all: true
@@ -39,3 +50,8 @@ cats:
   nodes: 3
   flake-attempts: 5
   timeout-scale: "3.0"
+s3:
+  bucket: kubecf
+  region: us-west-2
+  regexp: kubecf-bundle-v(.*).tgz
+{{ end }}
