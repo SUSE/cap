@@ -8,13 +8,11 @@ inputs:
 - name: ci
 - name: s3.chart-bundle
 params:
-  GITHUB_TOKEN: ~
-  GITHUB_PRIVATE_KEY: ~
-  GIT_MAIL: ~
-  GIT_USER: ~
-  CHART_BUNDLE: ~
-  HELM_CHARTS_REPO: ~
+  CHART_BUNDLE_DIR: ~
+  S3_BASE_URL: ~
+  OBS_PARENT_PROJECT: ~
   OBS_USERNAME: ~
   OBS_PASSWORD: ~
+  OBS_STEMCELL_PROJECT: ~
 run:
   path: ci/cap-sources-aggregation/tasks/push_to_obs.sh
