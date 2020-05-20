@@ -110,9 +110,13 @@ github_repos[splatform/eirinix-ssh-proxy-setup]="https://github.com/SUSE/eirinix
 github_repos[cfcontainerization/quarks-job]="https://github.com/cloudfoundry-incubator/quarks-job"
 
 handle_release_image() {
-  local package_name=$(echo $image | sed -E 's/.*\/([^/]+):.*/\1/')
-  local package_version=$(echo $image | sed -E 's/.*-(.*?)/\1/')
-  local url="${S3_BASE_URL}${package_name}-${package_version}.tgz"
+  local package_name
+  local package_version
+  local url
+
+  package_name=$(echo $image | sed -E 's/.*\/([^/]+):.*/\1/')
+  package_version=$(echo $image | sed -E 's/.*-(.*?)/\1/')
+  url="${S3_BASE_URL}${package_name}-${package_version}.tgz"
 
   osc mkpac "${package_name}"
   pushd "${package_name}"
@@ -123,12 +127,19 @@ handle_release_image() {
 }
 
 handle_github_based_image() {
-  local image=$1
-  local version_regex=$2
-  local package_version=$(echo $image | sed -E ${version_regex})
-  local package_name=$(echo $image | sed -E 's/.*\/([^/]+):.*/\1/')
-  local docker_repo=$(echo $image | sed -E 's/(.+):.*/\1/')
-  local github_repo=${github_repos[$docker_repo]}
+  local image
+  local version_regex
+  local package_version
+  local package_name
+  local docker_repo
+  local github_repo
+
+  image=$1
+  version_regex=$2
+  package_version=$(echo $image | sed -E ${version_regex})
+  package_name=$(echo $image | sed -E 's/.*\/([^/]+):.*/\1/')
+  docker_repo=$(echo $image | sed -E 's/(.+):.*/\1/')
+  github_repo=${github_repos[$docker_repo]}
 
   if [ -z "${github_repo}" ]; then
     echo "Github repository for image '${image}' not set. Abort."
@@ -160,8 +171,11 @@ handle_github_based_image() {
 
 handle_bits_image() {
   local image=$1
-  local package_version=$(echo $image | sed -E 's/.*:bits-([^-]*?).*/\1/')
-  local package_name=$(echo $image | sed -E 's/.*\/([^/]+):.*/\1/')
+  local package_version
+  local package_name
+
+  package_version=$(echo $image | sed -E 's/.*:bits-([^-]*?).*/\1/')
+  package_name=$(echo $image | sed -E 's/.*\/([^/]+):.*/\1/')
 
   osc mkpac "${package_name}"
   pushd "${package_name}"
@@ -174,7 +188,9 @@ handle_bits_image() {
 
 handle_pxc_image() {
   local image=$1
-  local version=$(echo $image | sed -E 's/.*:(.*)/\1/')
+  local version
+
+  version=$(echo $image | sed -E 's/.*:(.*)/\1/')
 
   osc mkpac pxc-docker
   pushd pxc-docker
@@ -187,7 +203,7 @@ handle_pxc_image() {
   urls=$(grep -o -E 'http[s]?://[^ ]*' "pxc-docker-${version}/Dockerfile"| grep -v "\.repo")
   for url in ${urls}; do
     wget ${url}
-    osc add $(basename ${url})
+    osc add "$(basename ${url})"
   done
   osc add "${version}.zip"
   osc ci -f -m "commit"
