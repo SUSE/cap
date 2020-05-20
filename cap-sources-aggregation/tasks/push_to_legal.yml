@@ -1,0 +1,16 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: splatform/binary_builder_obs_opensuse
+inputs:
+- name: ci
+- name: s3.chart-bundle
+params:
+  CHART_BUNDLE_DIR: ~
+  OBS_PARENT_PROJECT: ~
+  OBS_USERNAME: ~
+  OBS_PASSWORD: ~
+run:
+  path: ci/cap-sources-aggregation/tasks/push_to_legal.sh

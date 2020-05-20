@@ -34,3 +34,18 @@ jobs:
         OBS_PASSWORD: {{ index (datasource "concourse-secrets") "obs-password" }}
         OBS_STEMCELL_PROJECT: {{ .obs_stemcell_project }}
       file: ci/cap-sources-aggregation/tasks/push_to_obs.yml
+
+- name: push-to-legal
+  plan:
+  - in_parallel:
+    - get: ci
+    - get: s3.chart-bundle
+      passed: [push-to-obs]
+  - do:
+    - task: push_to_legal
+      params:
+        CHART_BUNDLE_DIR: s3.chart-bundle
+        OBS_PARENT_PROJECT: {{ .obs_parent_project }}
+        OBS_USERNAME: {{ index (datasource "concourse-secrets") "obs-username" }}
+        OBS_PASSWORD: {{ index (datasource "concourse-secrets") "obs-password" }}
+      file: ci/cap-sources-aggregation/tasks/push_to_legal.yml
