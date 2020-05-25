@@ -38,6 +38,7 @@ cat <<HEREDOC | osc meta prj -F - "${TARGET_OBS_PROJECT}"
   <title>BOSH release sources for CAP ${CAP_VERSION}</title>
   <description/>
   <person userid="alfred-jenkins" role="maintainer"/>
+  <group groupid="cloud-platform-maintainers" role="maintainer"/>
 </project>
 HEREDOC
 
