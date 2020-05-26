@@ -958,11 +958,10 @@ jobs:
       - name: s3.kubecf-bundle
       - name: pool.kube-hosts
       params:
+        BACKEND: {{ $backend }}
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
         TEST_SUITE: cats
-        TEST_SUITE: cats
-        BACKEND: {{ $backend }}
       run:
         path: "/bin/bash"
         args:
