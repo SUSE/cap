@@ -317,11 +317,6 @@ jobs:
             BACKEND: {{ $backend }}
             QUIET_OUTPUT: true
             DOWNLOAD_CATAPULT_DEPS: false
-            {{- if eq $scheduler "eirini" }}
-            ENABLE_EIRINI: true
-            {{ else }}
-            ENABLE_EIRINI: false
-            {{- end }}
           run:
             path: "/bin/bash"
             args:
@@ -466,11 +461,6 @@ jobs:
             BACKEND: {{ $backend }}
             QUIET_OUTPUT: true
             DOWNLOAD_CATAPULT_DEPS: false
-            {{- if eq $scheduler "eirini" }}
-            ENABLE_EIRINI: true
-            {{ else }}
-            ENABLE_EIRINI: false
-            {{- end }}
           run:
             path: "/bin/bash"
             args:
@@ -535,17 +525,6 @@ jobs:
       params:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
-{{- if eq $scheduler "eirini" }}
-        ENABLE_EIRINI: true
-{{ else }}
-        ENABLE_EIRINI: false
-{{- end }}
-{{- if eq $option "ha" }}
-        HA: true
-{{- end }}
-{{- if eq $option "all" }}
-{{- print $allbells }}
-{{- end }}
         TEST_SUITE: smokes
       run:
         path: "/bin/bash"
@@ -590,11 +569,6 @@ jobs:
             BACKEND: {{ $backend }}
             QUIET_OUTPUT: true
             DOWNLOAD_CATAPULT_DEPS: false
-            {{- if eq $scheduler "eirini" }}
-            ENABLE_EIRINI: true
-            {{ else }}
-            ENABLE_EIRINI: false
-            {{- end }}
           run:
             path: "/bin/bash"
             args:
@@ -659,17 +633,6 @@ jobs:
       params:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
-{{- if eq $scheduler "eirini" }}
-        ENABLE_EIRINI: true
-{{ else }}
-        ENABLE_EIRINI: false
-{{- end }}
-{{- if eq $option "ha" }}
-        HA: true
-{{- end }}
-{{- if eq $option "all" }}
-{{- print $allbells }}
-{{- end }}
         TEST_SUITE: brain
       run:
         path: "/bin/bash"
@@ -714,11 +677,6 @@ jobs:
             BACKEND: {{ $backend }}
             QUIET_OUTPUT: true
             DOWNLOAD_CATAPULT_DEPS: false
-            {{- if eq $scheduler "eirini" }}
-            ENABLE_EIRINI: true
-            {{ else }}
-            ENABLE_EIRINI: false
-            {{- end }}
           run:
             path: "/bin/bash"
             args:
@@ -783,17 +741,6 @@ jobs:
       params:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
-{{- if eq $scheduler "eirini" }}
-        ENABLE_EIRINI: true
-{{ else }}
-        ENABLE_EIRINI: false
-{{- end }}
-{{- if eq $option "ha" }}
-        HA: true
-{{- end }}
-{{- if eq $option "all" }}
-{{- print $allbells }}
-{{- end }}
         TEST_SUITE: cats
       run:
         path: "/bin/bash"
@@ -838,11 +785,6 @@ jobs:
             BACKEND: {{ $backend }}
             QUIET_OUTPUT: true
             DOWNLOAD_CATAPULT_DEPS: false
-            {{- if eq $scheduler "eirini" }}
-            ENABLE_EIRINI: true
-            {{ else }}
-            ENABLE_EIRINI: false
-            {{- end }}
           run:
             path: "/bin/bash"
             args:
@@ -907,17 +849,6 @@ jobs:
       params:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
-{{- if eq $scheduler "eirini" }}
-        ENABLE_EIRINI: true
-{{ else }}
-        ENABLE_EIRINI: false
-{{- end }}
-{{- if eq $option "ha" }}
-        HA: true
-{{- end }}
-{{- if eq $option "all" }}
-{{- print $allbells }}
-{{- end }}
         TEST_SUITE: sits
       run:
         path: "/bin/bash"
@@ -962,11 +893,6 @@ jobs:
             BACKEND: {{ $backend }}
             QUIET_OUTPUT: true
             DOWNLOAD_CATAPULT_DEPS: false
-            {{- if eq $scheduler "eirini" }}
-            ENABLE_EIRINI: true
-            {{ else }}
-            ENABLE_EIRINI: false
-            {{- end }}
           run:
             path: "/bin/bash"
             args:
@@ -1034,17 +960,6 @@ jobs:
       params:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
-{{- if eq $scheduler "eirini" }}
-        ENABLE_EIRINI: true
-{{ else }}
-        ENABLE_EIRINI: false
-{{- end }}
-{{- if eq $option "ha" }}
-        HA: true
-{{- end }}
-{{- if eq $option "all" }}
-{{- print $allbells }}
-{{- end }}
         TEST_SUITE: cats
         TEST_SUITE: cats
         BACKEND: {{ $backend }}
@@ -1091,11 +1006,6 @@ jobs:
             BACKEND: {{ $backend }}
             QUIET_OUTPUT: true
             DOWNLOAD_CATAPULT_DEPS: false
-            {{- if eq $scheduler "eirini" }}
-            ENABLE_EIRINI: true
-            {{ else }}
-            ENABLE_EIRINI: false
-            {{- end }}
           run:
             path: "/bin/bash"
             args:
@@ -1164,18 +1074,6 @@ jobs:
       params:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
-{{- if eq $scheduler "eirini" }}
-        ENABLE_EIRINI: true
-{{ else }}
-        ENABLE_EIRINI: false
-{{- end }}
-{{- if eq $option "ha" }}
-        HA: true
-{{- end }}
-{{- if eq $option "all" }}
-{{- print $allbells }}
-{{- end }}
-        TEST_SUITE: cats
       run:
         path: "/bin/bash"
         args:
@@ -1219,11 +1117,6 @@ jobs:
             BACKEND: {{ $backend }}
             QUIET_OUTPUT: true
             DOWNLOAD_CATAPULT_DEPS: false
-            {{- if eq $scheduler "eirini" }}
-            ENABLE_EIRINI: true
-            {{ else }}
-            ENABLE_EIRINI: false
-            {{- end }}
           run:
             path: "/bin/bash"
             args:
