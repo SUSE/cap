@@ -190,7 +190,6 @@ resources:
                 # Attention: PWD = ___/catapult here
                 # deploy kubecf from chart
                 export SCF_CHART="$(readlink -f ../s3.kubecf-bundle/*.tgz)"
-                export SCF_TESTGROUP=true
                 export SCF_OPERATOR=true
                 export DOCKER_ORG=cap-staging
                 export QUIET_OUTPUT=true
@@ -204,7 +203,6 @@ resources:
                 # See: https://github.com/SUSE/catapult/wiki/Running-SCF-tests#kubecf
                 export KUBECF_TEST_SUITE="${TEST_SUITE:-smokes}"
                 export KUBECF_NAMESPACE="scf"
-                export SCF_TESTGROUP=true
                 export QUIET_OUTPUT=true
                 env | sort | sed -e 's|^|CONFIGURATION: |'
                 make tests-kubecf
@@ -214,7 +212,6 @@ resources:
                 # Attention: PWD = ____/catapult here
                 # obtain scf-config-values.yaml for stratos
                 export QUIET_OUTPUT=true
-                export SCF_TESTGROUP=true
                 export SCF_OPERATOR=true
                 export DOCKER_ORG=cap-staging
                 make scf-gen-config
