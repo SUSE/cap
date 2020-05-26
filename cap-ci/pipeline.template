@@ -277,7 +277,6 @@ jobs:
       params:
         BACKEND: {{ $backend }}
         QUIET_OUTPUT: true
-        DEFAULT_STACK: cflinuxfs3
         DOWNLOAD_CATAPULT_DEPS: false
       run:
         path: "/bin/bash"
@@ -317,7 +316,6 @@ jobs:
           params:
             BACKEND: {{ $backend }}
             QUIET_OUTPUT: true
-            DEFAULT_STACK: cflinuxfs3
             DOWNLOAD_CATAPULT_DEPS: false
             {{- if eq $scheduler "eirini" }}
             ENABLE_EIRINI: true
@@ -414,7 +412,6 @@ jobs:
         CATS_TIMEOUT_SCALE: {{ index $config.cats "timeout-scale" }}
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
-        DEFAULT_STACK: cflinuxfs3
 {{- if eq $scheduler "eirini" }}
         ENABLE_EIRINI: true
 {{ else }}
@@ -468,7 +465,6 @@ jobs:
           params:
             BACKEND: {{ $backend }}
             QUIET_OUTPUT: true
-            DEFAULT_STACK: cflinuxfs3
             DOWNLOAD_CATAPULT_DEPS: false
             {{- if eq $scheduler "eirini" }}
             ENABLE_EIRINI: true
@@ -539,7 +535,6 @@ jobs:
       params:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
-        DEFAULT_STACK: cflinuxfs3
 {{- if eq $scheduler "eirini" }}
         ENABLE_EIRINI: true
 {{ else }}
@@ -594,7 +589,6 @@ jobs:
           params:
             BACKEND: {{ $backend }}
             QUIET_OUTPUT: true
-            DEFAULT_STACK: cflinuxfs3
             DOWNLOAD_CATAPULT_DEPS: false
             {{- if eq $scheduler "eirini" }}
             ENABLE_EIRINI: true
@@ -665,7 +659,6 @@ jobs:
       params:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
-        DEFAULT_STACK: cflinuxfs3
 {{- if eq $scheduler "eirini" }}
         ENABLE_EIRINI: true
 {{ else }}
@@ -720,7 +713,6 @@ jobs:
           params:
             BACKEND: {{ $backend }}
             QUIET_OUTPUT: true
-            DEFAULT_STACK: cflinuxfs3
             DOWNLOAD_CATAPULT_DEPS: false
             {{- if eq $scheduler "eirini" }}
             ENABLE_EIRINI: true
@@ -791,7 +783,6 @@ jobs:
       params:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
-        DEFAULT_STACK: cflinuxfs3
 {{- if eq $scheduler "eirini" }}
         ENABLE_EIRINI: true
 {{ else }}
@@ -846,7 +837,6 @@ jobs:
           params:
             BACKEND: {{ $backend }}
             QUIET_OUTPUT: true
-            DEFAULT_STACK: cflinuxfs3
             DOWNLOAD_CATAPULT_DEPS: false
             {{- if eq $scheduler "eirini" }}
             ENABLE_EIRINI: true
@@ -917,7 +907,6 @@ jobs:
       params:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
-        DEFAULT_STACK: cflinuxfs3
 {{- if eq $scheduler "eirini" }}
         ENABLE_EIRINI: true
 {{ else }}
@@ -972,7 +961,6 @@ jobs:
           params:
             BACKEND: {{ $backend }}
             QUIET_OUTPUT: true
-            DEFAULT_STACK: cflinuxfs3
             DOWNLOAD_CATAPULT_DEPS: false
             {{- if eq $scheduler "eirini" }}
             ENABLE_EIRINI: true
@@ -1046,7 +1034,6 @@ jobs:
       params:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
-        DEFAULT_STACK: cflinuxfs3
 {{- if eq $scheduler "eirini" }}
         ENABLE_EIRINI: true
 {{ else }}
@@ -1103,7 +1090,6 @@ jobs:
           params:
             BACKEND: {{ $backend }}
             QUIET_OUTPUT: true
-            DEFAULT_STACK: cflinuxfs3
             DOWNLOAD_CATAPULT_DEPS: false
             {{- if eq $scheduler "eirini" }}
             ENABLE_EIRINI: true
@@ -1178,7 +1164,6 @@ jobs:
       params:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
-        DEFAULT_STACK: cflinuxfs3
 {{- if eq $scheduler "eirini" }}
         ENABLE_EIRINI: true
 {{ else }}
@@ -1233,7 +1218,6 @@ jobs:
           params:
             BACKEND: {{ $backend }}
             QUIET_OUTPUT: true
-            DEFAULT_STACK: cflinuxfs3
             DOWNLOAD_CATAPULT_DEPS: false
             {{- if eq $scheduler "eirini" }}
             ENABLE_EIRINI: true
