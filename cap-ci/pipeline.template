@@ -407,17 +407,17 @@ jobs:
         CATS_TIMEOUT_SCALE: {{ index $config.cats "timeout-scale" }}
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
-{{- if eq $scheduler "eirini" }}
+        {{- if eq $scheduler "eirini" }}
         ENABLE_EIRINI: true
-{{ else }}
+        {{ else }}
         ENABLE_EIRINI: false
-{{- end }}
-{{- if eq $option "ha" }}
+        {{- end }}
+        {{- if eq $option "ha" }}
         HA: true
-{{- end }}
-{{- if eq $option "all" }}
-{{- print $allbells }}
-{{- end }}
+        {{- end }}
+        {{- if eq $option "all" }}
+        {{- print $allbells }}
+        {{- end }}
       run:
         path: "/bin/bash"
         args:
