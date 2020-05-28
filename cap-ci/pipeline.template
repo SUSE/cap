@@ -63,7 +63,7 @@ resources:
     regexp: kubecf-bundle-v(.*).tgz
     region_name: us-west-2
     {{- else if eq $config.s3bucket "cap-release-artifacts" }}
-    regexp: kubecf-(.*).tgz
+    regexp: CAP-(.*).tgz
     region_name: us-east-1
     {{- end }}
 
