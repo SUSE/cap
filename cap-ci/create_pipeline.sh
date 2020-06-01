@@ -31,8 +31,7 @@ else
     export PIPELINE=${2}
     if [[ "${PIPELINE}" == "cap-release" || "${PIPELINE}" == "cap-pre-release" ]]; then
         printf "This will modify the production pipeline: ${PIPELINE}. Are you sure you want to proceed?(yes/no): "
-        #read -r ans
-        ans=y #delete
+        read -r ans
         if [[ "$ans" != "y" && "$ans" != "yes" ]]; then
             echo "Operation aborted."
             exit 1
@@ -58,6 +57,4 @@ fly_args=(
 template_paths="${pipeline_config} scripts jobs common"
 templates=$(find ${template_paths} -type f -exec echo "--template="{} \;)
 pipeline_file=${3:-pipeline.yaml.tmpl}
-gomplate --verbose ${templates} --file pipeline.yaml.tmpl #delete
-exit #delete
 fly "${fly_args[@]}" --config <(gomplate --verbose ${templates} --file pipeline.yaml.tmpl)
