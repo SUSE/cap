@@ -7,5 +7,5 @@
   - get: {{ .backend }}-pool.kube-hosts
     passed:
     - stratos-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
-  {{- tmpl.Exec "common_destroy_k8s" . | indent 2 }} 
+  {{ tmpl.Exec "common_destroy_k8s" . | indent 2 | trimSpace }} 
 {{ end }}

@@ -29,16 +29,16 @@
         args:
           - -c
           - |
-            {{- tmpl.Exec "scripts_obtain_kubeconfig" | indent 12 }}
-            {{- tmpl.Exec ( print "scripts_import_" .backend ) | indent 12 }}
+            {{ tmpl.Exec "scripts_obtain_kubeconfig" | indent 12 | trimSpace }}
+            {{ tmpl.Exec ( print "scripts_import_" .backend ) | indent 12 | trimSpace }}
             {{- if index .jobs "stratos" }}
-            {{- tmpl.Exec "scripts_destroy_stratos" | indent 12 }}
+            {{ tmpl.Exec "scripts_destroy_stratos" | indent 12 | trimSpace }}
             {{- end}}
-            {{- tmpl.Exec "scripts_destroy_kubecf" | indent 12 }}
+            {{ tmpl.Exec "scripts_destroy_kubecf" | indent 12 | trimSpace }}
   {{- if index .jobs "deploy-k8s" }}
   ensure:
     do:
-      {{ tmpl.Exec "common_destroy_k8s" . | indent 6 }}
+      {{ tmpl.Exec "common_destroy_k8s" . | indent 6 | trimSpace }}
   {{ else }}
   - put: {{ .backend }}-pool.kube-hosts
     params: {release: {{ .backend }}-pool.kube-hosts}

@@ -39,7 +39,7 @@
         args:
           - -c
           - |
-            {{- tmpl.Exec "scripts_deploy_k8s" | indent 12 }}
+            {{ tmpl.Exec "scripts_deploy_k8s" | indent 12 | trimSpace }}
   - put: {{ .backend }}-pool.kube-hosts
     params:
       add_claimed: kubeconfig-pool
@@ -53,6 +53,6 @@
   {{- if index .jobs "deploy-k8s" }}
   on_failure:
     do:
-      {{- tmpl.Exec "common_destroy_k8s" . | indent 6 }}
+      {{ tmpl.Exec "common_destroy_k8s" . | indent 6 | trimSpace }}
   {{- end }}
 {{ end }}
