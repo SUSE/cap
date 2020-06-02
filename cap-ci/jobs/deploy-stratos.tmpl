@@ -1,5 +1,5 @@
 {{ define "jobs_deploy-stratos" }}
-- name: stratos-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
+- name: deploy-stratos-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
   serial_groups: [{{ .scheduler }}-{{ .backend }}-{{ .avail }}]
   public: false
   plan:

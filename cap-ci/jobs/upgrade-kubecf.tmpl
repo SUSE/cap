@@ -1,5 +1,5 @@
 {{ define "jobs_upgrade-kubecf" }}
-- name: upgrade-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
+- name: upgrade-kubecf-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
   serial_groups: [{{ .scheduler }}-{{ .backend }}-{{ .avail }}]
   public: false
   plan:
