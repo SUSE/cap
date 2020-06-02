@@ -1,5 +1,5 @@
 {{ define "scripts_destroy_stratos" }}
-{{- /* Attention: PWD = ___/catapult here */ -}}
+{{- /* Attention: PWD = ___/catapult here */ }}
 export QUIET_OUTPUT=true
 env | sort | sed -e 's|^|CONFIGURATION: |'
 make stratos-clean
