@@ -1,0 +1,11 @@
+{{ define "scripts_test" }}
+{{- /* Attention: PWD = ___/catapult here */}}
+{{- /* run test suites on cluster */}}
+{{- /* See: https://github.com/SUSE/catapult/wiki/Running-SCF-tests#kubecf */}}
+export KUBECF_TEST_SUITE="${TEST_SUITE:-smokes}"
+export KUBECF_NAMESPACE="scf"
+export SCF_TESTGROUP=true
+export QUIET_OUTPUT=true
+env | sort | sed -e 's|^|CONFIGURATION: |'
+make tests-kubecf
+{{ end }}

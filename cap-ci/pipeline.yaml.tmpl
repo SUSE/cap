@@ -1,0 +1,127 @@
+---
+{{- $config := tmpl.Exec "config" | data.YAML -}}
+
+{{- /* Iterate over config jobs_enabled and jobs to get ordered array of enabled jobs */ -}}
+{{- define "jobs_ordered" -}}
+{{- range $_, $job := .jobs_ordered -}}
+{{- if index $.jobs $job -}}
+- {{ $job }}
+{{ end }}{{ end }}{{ end }}
+# Create array of jobs which are enabled, using jobs_ordered array from config
+{{ $jobs_enabled := (tmpl.Exec "jobs_ordered" $config |  data.YAMLArray ) }}
+
+groups:
+{{- range $backend, $enabled := $config.backends }}{{ if $enabled }}
+- name: {{ $backend }}
+  jobs:
+    {{- range $job, $enabled :=  $config.jobs }}{{ if $enabled }}
+    {{- range $scheduler, $enabled := $config.schedulers }}{{ if $enabled }}
+    {{- range $avail, $enabled := $config.availabilities }}{{ if $enabled }}
+    - {{ $job }}-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
+    {{- end }}{{ end }}
+    {{- end }}{{ end }}
+    {{- end }}{{ end }}
+{{- end }}{{ end }}
+
+- name: ALL
+  jobs:
+    {{- range $backend, $enabled := $config.backends }}{{ if $enabled }}
+    {{- range $job, $enabled :=  $config.jobs }}{{ if $enabled }}
+    {{- range $scheduler, $enabled := $config.schedulers }}{{ if $enabled }}
+    {{- range $avail, $enabled := $config.availabilities }}{{ if $enabled }}
+    - {{ $job }}-{{ $scheduler }}-{{ $backend }}-{{ $avail }}
+    {{- end }}{{ end }}
+    {{- end }}{{ end }}
+    {{- end }}{{ end }}
+    {{- end }}{{ end }}
+
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: teliaoss/github-pr-resource
+
+- name: github-status
+  type: docker-image
+  source:
+    repository: resource/github-status
+    tag: release
+
+- name: helm-chart
+  type: docker-image
+  source:
+    repository: linkyard/helm-chart-resource
+
+resources:
+- name: catapult
+  type: git
+  source:
+    branch: {{ $config.catapult.branch }}
+    uri: {{ $config.catapult.uri }}
+
+- name: s3.kubecf-bundle
+  type: s3
+  source:
+    bucket: {{ $config.s3.bucket }}
+    access_key_id: ((aws-access-key))
+    secret_access_key: ((aws-secret-key))
+    regexp: {{ $config.s3.regexp }}
+    region_name: {{ $config.s3.region }}
+
+{{- if index $config.jobs "deploy-stratos" }}
+- name: helm-chart.stratos-chart
+  type: helm-chart
+  source:
+    chart: stratos/console
+    repos:
+    - name: stratos
+      url: http://opensource.suse.com/stratos/
+
+- name: helm-chart.stratos-metrics-chart
+  type: helm-chart
+  source:
+    chart: stratos-metrics/metrics
+    repos:
+    - name: stratos-metrics
+      url: http://opensource.suse.com/stratos-metrics/
+{{ end }}
+
+{{- if or (index $config.jobs "deploy-k8s") (index $config.jobs "destroy-k8s") }}
+- name: tfstate-pool
+  type: pool
+  source:
+    uri: git@github.com:SUSE/cf-ci-pools.git
+    private_key: ((github-private-key))
+    branch: tfstate
+    pool: tfstate
+{{- end }}
+
+# Pool resources with kube cluster information
+{{- range $backend, $enabled := $config.backends }}{{ if $enabled }}
+- name: {{ $backend }}-pool.kube-hosts
+  type: pool
+  source:
+    uri: git@github.com:SUSE/cf-ci-pools.git
+    private_key: ((github-private-key))
+    branch: {{ $backend }}-kube-hosts
+    pool: {{ $backend }}-kube-hosts
+{{ end }}{{ end }}
+{{- $pipelineName := .Env.PIPELINE }}
+{{- $allbells := `
+        # enable as much options as possible
+        HA: true
+        AUTOSCALER: true
+` }}
+{{- $context := $config | merge (dict "pipelineName" $pipelineName "allbells" $allbells "jobs_enabled" $jobs_enabled) -}}
+
+jobs:
+{{- range $job_index, $job := $jobs_enabled }}
+{{- range $backend, $enabled :=  $config.backends }}{{ if $enabled }}
+{{- range $avail, $enabled := $config.availabilities }}{{ if $enabled }}
+{{- range $scheduler, $enabled := $config.schedulers }}{{ if $enabled }}
+{{- $context := $context | merge (dict "position" $job_index "backend" $backend "avail" $avail "scheduler" $scheduler) -}}
+{{ tmpl.Exec ( print "jobs_" $job ) $context }}
+{{- end }}{{ end }}
+{{- end }}{{ end }}
+{{- end }}{{ end }}
+{{- end }}
