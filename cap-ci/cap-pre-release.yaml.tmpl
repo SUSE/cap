@@ -2,19 +2,17 @@
 workertags:
   # caasp4: suse-internal
 
-# Currently only accepts disabling jobs if all later jobs are also disabled.
-# Otherwise the job dependencies in pipeline.template(listed in passed) have to be changed manually.
 jobs:
   deploy-k8s: false
   deploy-kubecf: true
   smoke-tests: true
-  cf-acceptance-tests-brain: false
-  cf-acceptance-tests: false
-  sync-integration-tests: false
-  upgrade-kubecf: false
-  deploy-stratos: false
+  cf-acceptance-tests-brain: true
+  cf-acceptance-tests: true
+  sync-integration-tests: true
+  upgrade-kubecf: true
+  deploy-stratos: true
   destroy-kubecf: true
-  destroy-k8s: true
+  destroy-k8s: false
 jobs_ordered:
 - deploy-k8s
 - deploy-kubecf

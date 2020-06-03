@@ -57,4 +57,4 @@ fly_args=(
 template_paths="${pipeline_config} scripts jobs common"
 templates=$(find ${template_paths} -type f -exec echo "--template="{} \;)
 pipeline_file=${3:-pipeline.yaml.tmpl}
-fly "${fly_args[@]}" --config <(gomplate --verbose ${templates} --file pipeline.yaml.tmpl)
+fly "${fly_args[@]}" --config <(gomplate --verbose ${templates} --file "${pipeline_file}")
