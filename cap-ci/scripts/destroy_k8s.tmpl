@@ -1,5 +1,5 @@
 {{ define "scripts_destroy_k8s" }}
-# delete k8s cluster
+{{- /* delete k8s cluster */}}
 cp ../tfstate-pool/metadata tfstate.zip
 export TFSTATE=$PWD/tfstate.zip
 export AWS_ACCESS_KEY_ID='((aws-ci-chuller-access-key-id))'
