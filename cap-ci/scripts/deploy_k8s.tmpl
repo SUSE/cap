@@ -15,7 +15,7 @@ if [[ ${BACKEND} == "gke" ]]; then
   echo tf-${GKE_CLUSTER_NAME}.zip > tfstate-pool/name
   cp catapult/build${GKE_CLUSTER_NAME}/tf-setup.zip tfstate-pool/metadata
 elif [[ ${BACKEND} == "aks" ]]; then
-  printf "%s" '((azure-dns-key-json))' > $PWD/azure-dns-key.json
+  printf "%s" '((azure-dns-json))' > $PWD/azure-dns-key.json
   export AZURE_DNS_JSON=$PWD/azure-dns-key.json
   export AZURE_CLUSTER_NAME=ci-${BACKEND}-${random_variable}
   export CLUSTER_NAME=${AZURE_CLUSTER_NAME}
