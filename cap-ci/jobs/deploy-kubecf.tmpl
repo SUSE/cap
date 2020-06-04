@@ -76,8 +76,6 @@
             {{ tmpl.Exec ( print "scripts_import_" .backend ) | indent 12 | trimSpace }}
             {{ tmpl.Exec "scripts_deploy_kubecf" | indent 12 | trimSpace }}
   {{- if index .jobs "deploy-k8s" }}
-  on_failure:
-    do:
-      {{ tmpl.Exec "common_destroy_k8s" . | indent 6 | trimSpace }}
+  {{ tmpl.Exec "common_destroy_k8s" . | indent 2 | trimSpace }}
   {{- end }}
 {{ end }}

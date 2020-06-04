@@ -1,41 +1,48 @@
 {{ define "common_destroy_k8s" }}
-- task: destroy-k8s
-  {{- if has .workertags .backend }}
-  tags: [{{ index .workertags .backend }}]
-  {{- end }}
-  timeout: 2h30m
-  input_mapping:
-    pool.kube-hosts: {{ .backend }}-pool.kube-hosts
-  config:
-    platform: linux
-    image_resource:
-      type: registry-image
-      source:
-        repository: splatform/catapult
-    inputs:
-    - name: catapult
-    - name: pool.kube-hosts
-    - name: tfstate-pool
-    params:
-      BACKEND: {{ .backend }}
-      QUIET_OUTPUT: true
-      DEFAULT_STACK: cflinuxfs3
-      DOWNLOAD_CATAPULT_DEPS: false
-      ENABLE_EIRINI: {{ eq .scheduler "eirini" }}
-    run:
-      path: "/bin/bash"
-      args:
-        - -c
-        - |
-          {{ tmpl.Exec "scripts_obtain_kubeconfig" | indent 10 | trimSpace }}
-          {{ tmpl.Exec ( print "scripts_import_" .backend ) | indent 10 | trimSpace }}
-          {{ tmpl.Exec "scripts_destroy_k8s" | indent 10 | trimSpace }}
-- put: {{ .backend }}-pool.kube-hosts
-  params:
-    remove: {{ .backend }}-pool.kube-hosts
-    depth: 1
-- put: tfstate-pool
-  params:
-    remove: tfstate-pool
-    depth: 1
+{{- /* if this is the last enabled job, but not the *only* enabled job (deploy-k8s) */ -}}
+{{- if and (eq .position (sub (len .jobs_enabled) 1)) (ne .position 0) }}
+ensure:
+{{- else }}{{/* if deploy-k8s is the only job, or this job isn't the last job */}}
+on_failure:
+{{- end }}{{/* if/else for ensure/on_failure based on relative position */}}
+  do:
+    - task: destroy-k8s
+      {{- if has .workertags .backend }}
+      tags: [{{ index .workertags .backend }}]
+      {{- end }}
+      timeout: 2h30m
+      input_mapping:
+        pool.kube-hosts: {{ .backend }}-pool.kube-hosts
+      config:
+        platform: linux
+        image_resource:
+          type: registry-image
+          source:
+            repository: splatform/catapult
+        inputs:
+        - name: catapult
+        - name: pool.kube-hosts
+        - name: tfstate-pool
+        params:
+          BACKEND: {{ .backend }}
+          QUIET_OUTPUT: true
+          DEFAULT_STACK: cflinuxfs3
+          DOWNLOAD_CATAPULT_DEPS: false
+          ENABLE_EIRINI: {{ eq .scheduler "eirini" }}
+        run:
+          path: "/bin/bash"
+          args:
+            - -c
+            - |
+              {{ tmpl.Exec "scripts_obtain_kubeconfig" | indent 14 | trimSpace }}
+              {{ tmpl.Exec ( print "scripts_import_" .backend ) | indent 14 | trimSpace }}
+              {{ tmpl.Exec "scripts_destroy_k8s" | indent 14 | trimSpace }}
+    - put: {{ .backend }}-pool.kube-hosts
+      params:
+        remove: {{ .backend }}-pool.kube-hosts
+        depth: 1
+    - put: tfstate-pool
+      params:
+        remove: tfstate-pool
+        depth: 1
 {{ end }}
