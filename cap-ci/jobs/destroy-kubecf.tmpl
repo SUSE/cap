@@ -36,11 +36,10 @@
             {{- end}}
             {{ tmpl.Exec "scripts_destroy_kubecf" | indent 12 | trimSpace }}
   {{- if index .jobs "deploy-k8s" }}
-  ensure:
-    do:
-      {{ tmpl.Exec "common_destroy_k8s" . | indent 6 | trimSpace }}
+  {{ tmpl.Exec "common_destroy_k8s" . | indent 2 | trimSpace }}
   {{ else }}
   - put: {{ .backend }}-pool.kube-hosts
-    params: {release: {{ .backend }}-pool.kube-hosts}
+    params:
+      release: {{ .backend }}-pool.kube-hosts
   {{- end }}
 {{ end }}

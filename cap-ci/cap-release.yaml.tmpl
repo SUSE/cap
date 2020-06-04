@@ -12,7 +12,6 @@ jobs:
   upgrade-kubecf: true
   deploy-stratos: true
   destroy-kubecf: true
-  destroy-k8s: false
 jobs_ordered:
 - deploy-k8s
 - deploy-kubecf
@@ -23,7 +22,6 @@ jobs_ordered:
 - upgrade-kubecf
 - deploy-stratos
 - destroy-kubecf
-- destroy-k8s
 backends:
   caasp4: true
   aks: true
