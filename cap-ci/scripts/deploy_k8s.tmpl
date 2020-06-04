@@ -16,11 +16,11 @@ if [[ ${BACKEND} == "gke" ]]; then
   cp catapult/build${GKE_CLUSTER_NAME}/tf-setup.zip tfstate-pool/metadata
 elif [[ ${BACKEND} == "aks" ]]; then
   printf "%s" '((azure-dns-json))' > $PWD/azure-dns-key.json
-  export AZURE_DNS_JSON=$PWD/azure-dns-key.json
+  export AZURE_DNS_JSON_PATH=$PWD/azure-dns-key.json
   export AZURE_CLUSTER_NAME=ci-${BACKEND}-${random_variable}
   export CLUSTER_NAME=${AZURE_CLUSTER_NAME}
   export TF_KEY=${AZURE_CLUSTER_NAME}
-  (cd catapult; make BACKEND=${BACKEND} AZURE_APP_ID='((azure-sp-creds.app_id))' AZURE_PASSWORD='((azure-sp-creds.password))' AZURE_TENANT_ID='((azure-sp-creds.tenant_id))' AZURE_SUBSCRIPTION_ID='((azure-sp-creds.subscription_id))' AZURE_DNS_JSON=${AZURE_DNS_JSON} AZURE_RESOURCE_GROUP=${AZURE_CLUSTER_NAME}-rg AZURE_CLUSTER_NAME=${AZURE_CLUSTER_NAME} CLUSTER_NAME=${CLUSTER_NAME} TF_KEY=${TF_KEY} k8s)
+  (cd catapult; make BACKEND=${BACKEND} AZURE_APP_ID='((azure-sp-creds.app_id))' AZURE_PASSWORD='((azure-sp-creds.password))' AZURE_TENANT_ID='((azure-sp-creds.tenant_id))' AZURE_SUBSCRIPTION_ID='((azure-sp-creds.subscription_id))' AZURE_DNS_JSON=${AZURE_DNS_JSON_PATH} AZURE_RESOURCE_GROUP=${AZURE_CLUSTER_NAME}-rg AZURE_CLUSTER_NAME=${AZURE_CLUSTER_NAME} CLUSTER_NAME=${CLUSTER_NAME} TF_KEY=${TF_KEY} k8s)
   echo ${AZURE_CLUSTER_NAME} > kubeconfig-pool/name
   cp catapult/build${AZURE_CLUSTER_NAME}/kubeconfig kubeconfig-pool/metadata
   echo tf-${AZURE_CLUSTER_NAME}.zip > tfstate-pool/name
