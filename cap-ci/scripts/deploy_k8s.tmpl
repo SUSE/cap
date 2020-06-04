@@ -15,6 +15,12 @@ if [[ ${BACKEND} == "gke" ]]; then
   echo tf-${GKE_CLUSTER_NAME}.zip > tfstate-pool/name
   cp catapult/build${GKE_CLUSTER_NAME}/tf-setup.zip tfstate-pool/metadata
 elif [[ ${BACKEND} == "aks" ]]; then
+  printf "%s" '((ssh-key-ci.pvt-key))' > $PWD/sshkey
+  printf "%s" '((ssh-key-ci.pub-key))' > $PWD/sshkey.pub
+  chmod 600 $PWD/sshkey
+  chmod 600 $PWD/sshkey.pub
+  eval $(ssh-agent -s)
+  ssh-add $PWD/sshkey
   printf "%s" '((azure-dns-json))' > $PWD/azure-dns-key.json
   export AZURE_DNS_JSON_PATH=$PWD/azure-dns-key.json
   export AZURE_CLUSTER_NAME=ci-${BACKEND}-${random_variable}
