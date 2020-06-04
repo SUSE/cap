@@ -16,7 +16,6 @@ elif [[ ${BACKEND} == "aks" ]]; then
     export AZURE_PASSWORD='((azure-sp-creds.password))'
     export AZURE_TENANT_ID='((azure-sp-creds.tenant_id))'
     export AZURE_SUBSCRIPTION_ID='((azure-sp-creds.subscription_id))'
-    export SCF_OPERATOR=true
     make clean
 fi
 {{ end }}
