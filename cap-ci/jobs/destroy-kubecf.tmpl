@@ -8,6 +8,13 @@
     passed:
     - {{ index .jobs_enabled (sub .position 1) }}-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
     trigger: true
+  {{- if index .jobs "deploy-k8s" }}
+  - get: tfstate-pool
+    {{- if ne .position 0 }}
+    passed:
+    - {{ index .jobs_enabled (sub .position 1) }}-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
+    {{- end }}
+  {{- end }}
   - task: clean-kubecf-{{ .scheduler }}
     timeout: 5h30m
     input_mapping:
