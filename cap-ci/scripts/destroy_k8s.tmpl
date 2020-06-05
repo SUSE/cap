@@ -9,5 +9,13 @@ if [[ ${BACKEND} == "gke" ]]; then
     export GKE_CRED_JSON=$PWD/gke-key.json
     export SCF_OPERATOR=true
     make clean
+elif [[ ${BACKEND} == "aks" ]]; then
+    printf "%s" '((azure-dns-json))' > $PWD/azure-dns-key.json
+    export AZURE_DNS_JSON=$PWD/azure-dns-key.json
+    export AZURE_APP_ID='((azure-sp-creds.app_id))'
+    export AZURE_PASSWORD='((azure-sp-creds.password))'
+    export AZURE_TENANT_ID='((azure-sp-creds.tenant_id))'
+    export AZURE_SUBSCRIPTION_ID='((azure-sp-creds.subscription_id))'
+    make clean
 fi
 {{ end }}
