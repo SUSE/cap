@@ -26,7 +26,6 @@ on_failure:
         params:
           BACKEND: {{ .backend }}
           QUIET_OUTPUT: true
-          DEFAULT_STACK: cflinuxfs3
           DOWNLOAD_CATAPULT_DEPS: false
           ENABLE_EIRINI: {{ eq .scheduler "eirini" }}
         run:
