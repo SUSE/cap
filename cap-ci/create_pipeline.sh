@@ -57,4 +57,28 @@ fly_args=(
 template_paths="${pipeline_config} scripts jobs common"
 templates=$(find ${template_paths} -type f -exec echo "--template="{} \;)
 pipeline_file=${3:-pipeline.yaml.tmpl}
+
+# Determine if the pipeline being pushed is a new pipeline
+existing_pipeline_job_count=$(
+  fly --target ${target} get-pipeline --pipeline ${PIPELINE} --json | jq '.jobs | length'
+)
+if [[ ${existing_pipeline_job_count} -gt 0 ]]; then
+  pipeline_already_existed=true
+else
+  pipeline_already_existed=false
+fi
+
+# Push a new pipeline, or update an existing one
 fly "${fly_args[@]}" --config <(gomplate --verbose ${templates} --file "${pipeline_file}")
+
+# If the pipeline being pushed was a *new* pipeline, pause all the 'initial' jobs (jobs without 'passed:' dependencies)
+# Important caveat: If a pipeline is updated to add new targets, the new initial jobs will *not* be paused
+if ! ${pipeline_already_existed}; then
+  jobs_without_dependencies_names=$(
+    fly ${target:+"--target=${target}"} get-pipeline --json -p "${PIPELINE}" | jq -r '.jobs - [.jobs[] | select(.plan[] | .passed)] | .[].name'
+  )
+  for job_name in ${jobs_without_dependencies_names}; do
+    fly ${target:+"--target=${target}"} pause-job -j "${PIPELINE}/${job_name}"
+  done
+  fly ${target:+"--target=${target}"} unpause-pipeline --pipeline="${PIPELINE}"
+fi
