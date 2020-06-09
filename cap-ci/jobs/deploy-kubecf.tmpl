@@ -59,7 +59,6 @@
         CATS_TIMEOUT_SCALE: {{ index .cats "timeout-scale" }}
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
-        DEFAULT_STACK: cflinuxfs3
         ENABLE_EIRINI: {{ eq .scheduler "eirini" }}
 {{- if eq .avail "ha" }}
         HA: true
