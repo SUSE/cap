@@ -1,4 +1,3 @@
-{{ define "config" }}
 workertags:
   # caasp4: suse-internal
 
@@ -47,7 +46,6 @@ cats:
   flake-attempts: 5
   timeout-scale: "3.0"
 s3:
-  bucket: kubecf
-  region: us-west-2
-  regexp: kubecf-bundle-v(.*).tgz
-{{ end }}
+  bucket: cap-release-artifacts
+  regexp: CAP-(.*).tgz
+  region: us-east-1

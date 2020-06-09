@@ -1,5 +1,5 @@
 ---
-{{- $config := tmpl.Exec "config" | data.YAML -}}
+{{- $config := (datasource "config") }}
 
 {{- /* Iterate over config jobs_enabled and jobs to get ordered array of enabled jobs */ -}}
 {{- define "jobs_ordered" -}}
