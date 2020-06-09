@@ -7,7 +7,6 @@ export AWS_SECRET_ACCESS_KEY='((aws-ci-chuller-secret-access-key))'
 if [[ ${BACKEND} == "gke" ]]; then
     printf "%s" '((gke-key-json))' > $PWD/gke-key.json
     export GKE_CRED_JSON=$PWD/gke-key.json
-    export SCF_OPERATOR=true
     make clean
 elif [[ ${BACKEND} == "aks" ]]; then
     printf "%s" '((azure-dns-json))' > $PWD/azure-dns-key.json
