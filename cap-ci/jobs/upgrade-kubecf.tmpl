@@ -40,11 +40,7 @@
       params:
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
-{{- if eq .scheduler "eirini" }}
-        ENABLE_EIRINI: true
-{{ else }}
-        ENABLE_EIRINI: false
-{{- end }}
+        ENABLE_EIRINI: {{ eq .scheduler "eirini" }}
 {{- if eq .avail "ha" }}
         HA: true
 {{- end }}
