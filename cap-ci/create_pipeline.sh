@@ -37,14 +37,13 @@ else
             exit 1
         fi
     fi
-    if test -f "${PIPELINE}".yaml.tmpl; then
-        pipeline_config=${PIPELINE}.yaml.tmpl
+    if test -f "${PIPELINE}".yaml; then
+        pipeline_config=${PIPELINE}.yaml
     else
-        echo "Config file ${PIPELINE}.yaml.tmpl doesn't exist."
+        echo "Config file ${PIPELINE}.yaml doesn't exist."
         usage
         exit 1
     fi
-    
 fi
 
 fly_args=(
@@ -54,7 +53,7 @@ fly_args=(
 )
 
 # space-separated paths to template files and directories which contain template files
-template_paths="${pipeline_config} scripts jobs common"
+template_paths="scripts jobs common"
 templates=$(find ${template_paths} -type f -exec echo "--template="{} \;)
 pipeline_file=${3:-pipeline.yaml.tmpl}
 
@@ -69,7 +68,7 @@ else
 fi
 
 # Push a new pipeline, or update an existing one
-fly "${fly_args[@]}" --config <(gomplate --verbose ${templates} --file "${pipeline_file}")
+fly "${fly_args[@]}" --config <(gomplate --verbose --datasource config="${pipeline_config}" "${templates}" --file "${pipeline_file}")
 
 # If the pipeline being pushed was a *new* pipeline, pause all the 'initial' jobs (jobs without 'passed:' dependencies)
 # Important caveat: If a pipeline is updated to add new targets, the new initial jobs will *not* be paused
