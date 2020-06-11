@@ -68,7 +68,7 @@ else
 fi
 
 # Push a new pipeline, or update an existing one
-fly "${fly_args[@]}" --config <(gomplate --verbose --datasource config="${pipeline_config}" "${templates}" --file "${pipeline_file}")
+fly "${fly_args[@]}" --config <(gomplate --verbose --datasource config="${pipeline_config}" ${templates} --file "${pipeline_file}")
 
 # If the pipeline being pushed was a *new* pipeline, pause all the 'initial' jobs (jobs without 'passed:' dependencies)
 # Important caveat: If a pipeline is updated to add new targets, the new initial jobs will *not* be paused
