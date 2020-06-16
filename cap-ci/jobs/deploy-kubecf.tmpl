@@ -60,7 +60,9 @@
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
         ENABLE_EIRINI: {{ eq .scheduler "eirini" }}
-        HA: {{ eq .avail "ha" }}
+{{- if eq .avail "ha" }}
+        HA: true
+{{- end }}
 {{- if eq .avail "all" }}
 {{- print .allbells }}
 {{- end }}
