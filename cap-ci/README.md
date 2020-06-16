@@ -24,7 +24,7 @@ E.g: to deploy the `cap-release` pipeline:
 
     $ ./create_pipeline.sh <concourse-target> cap-release
 
-Note: If you wish to deploy a custom pipeline, copy and modify either `cap-pre-release.yaml` or `cap-release.yaml`. The name of your config file will be used as the <pipeline-name>.
+Note: If you wish to deploy a custom pipeline, copy and modify either `cap-pre-release.yaml` or `cap-release.yaml`. The name of your config file will be used as the `<pipeline-name>`.
 
 # Implementation
 
