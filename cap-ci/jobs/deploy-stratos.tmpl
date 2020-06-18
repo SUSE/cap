@@ -49,6 +49,7 @@
 {{- print .allbells }}
 {{- end }}
         BACKEND: {{ .backend }}
+        {{ tmpl.Exec "common_eks_params" | indent 8 | trimSpace }}
       run:
         path: "/bin/bash"
         args:

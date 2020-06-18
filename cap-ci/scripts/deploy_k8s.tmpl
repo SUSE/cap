@@ -1,8 +1,6 @@
 {{ define "scripts_deploy_k8s" }}
 {{- /* create k8s cluster */}}
 export random_variable=$(hexdump -n 8 -e '2/4 "%08x"' /dev/urandom)
-export AWS_ACCESS_KEY_ID='((aws-ci-chuller-access-key-id))'
-export AWS_SECRET_ACCESS_KEY='((aws-ci-chuller-secret-access-key))'
 if [[ ${BACKEND} == "gke" ]]; then
   printf "%s" '((gke-key-json))' > $PWD/gke-key.json
   export GKE_CRED_JSON=$PWD/gke-key.json

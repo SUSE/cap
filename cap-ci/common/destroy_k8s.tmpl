@@ -28,6 +28,7 @@ on_failure:
           QUIET_OUTPUT: true
           DOWNLOAD_CATAPULT_DEPS: false
           ENABLE_EIRINI: {{ eq .scheduler "eirini" }}
+          {{ tmpl.Exec "common_eks_params" | indent 10 | trimSpace }}
         run:
           path: "/bin/bash"
           args:

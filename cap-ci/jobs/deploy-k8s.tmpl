@@ -33,6 +33,7 @@
         BACKEND: {{ .backend }}
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
+        {{ tmpl.Exec "common_eks_params" | indent 8 | trimSpace }}
       run:
         path: "/bin/bash"
         args:

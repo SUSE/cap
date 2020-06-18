@@ -44,6 +44,7 @@
 {{- print .allbells }}
 {{- end }}
         KUBECF_TEST_SUITE: brain
+        {{ tmpl.Exec "common_eks_params" | indent 8 | trimSpace }}
       run:
         path: "/bin/bash"
         args:
