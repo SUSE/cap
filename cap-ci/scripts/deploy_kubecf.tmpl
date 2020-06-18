@@ -4,6 +4,5 @@
 export SCF_CHART="$(readlink -f ../s3.kubecf-bundle/*.tgz)"
 export DOCKER_ORG=cap-staging
 export QUIET_OUTPUT=true
-env | sort | sed -e 's|^|CONFIGURATION: |'
 make kubecf && make kubecf-login # ensure cf is there
 {{ end }}

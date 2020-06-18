@@ -2,6 +2,5 @@
 {{- /* Attention: PWD = ___/catapult here */}}
 {{- /* cleanup */}}
 export QUIET_OUTPUT=true
-env | sort | sed -e 's|^|CONFIGURATION: |'
 make kubecf-clean
 {{ end }}

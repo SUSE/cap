@@ -4,7 +4,6 @@
 export SCF_CHART="$(readlink -f ../s3.kubecf-bundle/*.tgz)"
 export DOCKER_ORG=cap-staging
 export QUIET_OUTPUT=true
-env | sort | sed -e 's|^|CONFIGURATION: |'
 make kubecf-chart # this takes the same chart as the deploy step for now
 make kubecf-gen-config
 make kubecf-upgrade
