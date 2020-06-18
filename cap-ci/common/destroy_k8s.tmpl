@@ -1,6 +1,6 @@
 {{ define "common_destroy_k8s" }}
 {{- /* if this is the last enabled job, but not the *only* enabled job (deploy-k8s) */ -}}
-{{- if and (eq .position (sub (len .jobs_enabled) 1)) (ne .position 0) }}
+{{- if and (eq .position (sub (len .jobs_enabled) 1)) (ne .job "deploy-k8s" ) }}
 ensure:
 {{- else }}{{/* if deploy-k8s is the only job, or this job isn't the last job */}}
 on_failure:
@@ -28,6 +28,7 @@ on_failure:
           QUIET_OUTPUT: true
           DOWNLOAD_CATAPULT_DEPS: false
           ENABLE_EIRINI: {{ eq .scheduler "eirini" }}
+          {{ tmpl.Exec "common_eks_params" | indent 10 | trimSpace }}
         run:
           path: "/bin/bash"
           args:
