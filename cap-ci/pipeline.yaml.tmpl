@@ -119,7 +119,7 @@ jobs:
 {{- range $backend, $enabled :=  $config.backends }}{{ if $enabled }}
 {{- range $avail, $enabled := $config.availabilities }}{{ if $enabled }}
 {{- range $scheduler, $enabled := $config.schedulers }}{{ if $enabled }}
-{{- $context := $context | merge (dict "position" $job_index "backend" $backend "avail" $avail "scheduler" $scheduler) -}}
+{{- $context := $context | merge (dict "position" $job_index "backend" $backend "avail" $avail "scheduler" $scheduler "job" $job) -}}
 {{ tmpl.Exec ( print "jobs_" $job ) $context }}
 {{- end }}{{ end }}
 {{- end }}{{ end }}
