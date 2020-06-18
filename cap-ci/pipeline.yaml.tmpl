@@ -86,7 +86,7 @@ resources:
       url: http://opensource.suse.com/stratos-metrics/
 {{ end }}
 
-{{- if or (index $config.jobs "deploy-k8s") (index $config.jobs "destroy-k8s") }}
+{{- if index $config.jobs "deploy-k8s" }}
 - name: tfstate-pool
   type: pool
   source:

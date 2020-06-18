@@ -5,9 +5,11 @@
   plan:
   - get: catapult
   - get: {{ .backend }}-pool.kube-hosts
+    {{- if ne .position 0 }}
     passed:
     - {{ index .jobs_enabled (sub .position 1) }}-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
     trigger: true
+    {{- end }}
   {{- if index .jobs "deploy-k8s" }}
   - get: tfstate-pool
     {{- if ne .position 0 }}
