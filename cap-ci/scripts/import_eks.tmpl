@@ -2,8 +2,8 @@
 {{- /* create buildfolder prepared for eks */}}
 export BACKEND=eks
 {{- /* AWS vars exported here so hijacking doesn't contain them in env */}}
-export AWS_ACCESS_KEY_ID='((aws-ci-chuller-access-key-id))'
-export AWS_SECRET_ACCESS_KEY='((aws-ci-chuller-secret-access-key))'
+export AWS_ACCESS_KEY_ID='((aws-service-account-ci-creds.access-key))'
+export AWS_SECRET_ACCESS_KEY='((aws-service-account-ci-creds.secret-key))'
 export KUBECFG=$PWD/kubeconfig_$CLUSTER_NAME
 make kubeconfig
 {{ end }}
