@@ -16,7 +16,7 @@ ssh-add $PWD/sshkey
 if [[ ${BACKEND} == "gke" ]]; then
   printf "%s" '((gke-key-json))' > $PWD/gke-key.json
   export GKE_CRED_JSON=$PWD/gke-key.json
-  (cd catapult; make BACKEND=${BACKEND} GKE_CREDS_JSON=$GKE_CRED_JSON GKE_CLUSTER_NAME=${CLUSTER_NAME} CLUSTER_NAME=${CLUSTER_NAME} TF_KEY=${TF_KEY} k8s)
+  (cd catapult; BACKEND=${BACKEND} GKE_CREDS_JSON=$GKE_CRED_JSON GKE_CLUSTER_NAME=${CLUSTER_NAME} CLUSTER_NAME=${CLUSTER_NAME} TF_KEY=${TF_KEY} make k8s)
   cp catapult/build${CLUSTER_NAME}/kubeclusterreference kubeconfig-pool/metadata
 elif [[ ${BACKEND} == "aks" ]]; then
   printf "%s" '((azure-dns-json))' > $PWD/azure-dns-key.json
