@@ -8,6 +8,5 @@ make kubecf-gen-config
 export STRATOS_CHART="$(readlink -f ../helm-chart.stratos-chart/*.tgz)"
 export METRICS_CHART="$(readlink -f ../helm-chart.stratos-metrics-chart/*.tgz)"
 unset DOCKER_ORG # consume docker images from DOCKER_ORG=cap on stratos & metrics
-env | sort | sed -e 's|^|CONFIGURATION: |'
 make stratos metrics
 {{ end }}
