@@ -2,12 +2,11 @@
 {{- /* delete k8s cluster */}}
 cp ../tfstate-pool/metadata tfstate.zip
 export TFSTATE=$PWD/tfstate.zip
-export AWS_ACCESS_KEY_ID='((aws-ci-chuller-access-key-id))'
-export AWS_SECRET_ACCESS_KEY='((aws-ci-chuller-secret-access-key))'
+export AWS_ACCESS_KEY_ID='((aws-service-account-ci-creds.access-key))'
+export AWS_SECRET_ACCESS_KEY='((aws-service-account-ci-creds.secret-key))'
 if [[ ${BACKEND} == "gke" ]]; then
     printf "%s" '((gke-key-json))' > $PWD/gke-key.json
     export GKE_CRED_JSON=$PWD/gke-key.json
-    make clean
 elif [[ ${BACKEND} == "aks" ]]; then
     printf "%s" '((azure-dns-json))' > $PWD/azure-dns-key.json
     export AZURE_DNS_JSON=$PWD/azure-dns-key.json
@@ -15,6 +14,6 @@ elif [[ ${BACKEND} == "aks" ]]; then
     export AZURE_PASSWORD='((azure-sp-creds.password))'
     export AZURE_TENANT_ID='((azure-sp-creds.tenant_id))'
     export AZURE_SUBSCRIPTION_ID='((azure-sp-creds.subscription_id))'
-    make clean
 fi
+make clean
 {{ end }}
