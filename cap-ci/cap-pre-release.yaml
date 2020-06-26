@@ -2,7 +2,7 @@ workertags:
   # caasp4: suse-internal
 
 jobs:
-  deploy-k8s: false
+  deploy-k8s: true
   deploy-kubecf: true
   smoke-tests: true
   cf-acceptance-tests-brain: true
@@ -49,3 +49,7 @@ s3:
   bucket: kubecf
   region: us-west-2
   regexp: kubecf-bundle-v(.*).tgz
+schedule:
+  start: 12:00 AM
+  stop: 1:00 AM
+  location: America/Vancouver

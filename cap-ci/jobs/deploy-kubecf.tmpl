@@ -8,13 +8,7 @@
     {{- end }}
   {{- if index .jobs "deploy-stratos" }}
   - get: helm-chart.stratos-chart
-    {{- if not (index .jobs "deploy-k8s") }}
-    trigger: true
-    {{- end }}
   - get: helm-chart.stratos-metrics-chart
-    {{- if not (index .jobs "deploy-k8s") }}
-    trigger: true
-    {{- end }}
   {{ end }}
   - get: catapult
   {{- if index .jobs "deploy-k8s" }}
