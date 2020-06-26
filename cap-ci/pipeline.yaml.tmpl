@@ -68,7 +68,7 @@ resources:
     regexp: {{ $config.s3.regexp }}
     region_name: {{ $config.s3.region }}
 
-{{- if $config.schedule }}
+{{- if eq $config.schedule.enabled true }}
 - name: schedule-interval
   type: time
   source:

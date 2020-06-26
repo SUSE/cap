@@ -49,3 +49,5 @@ s3:
   bucket: cap-release-artifacts
   regexp: CAP-(.*).tgz
   region: us-east-1
+schedule:
+  enabled: false
