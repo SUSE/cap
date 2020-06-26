@@ -50,6 +50,7 @@ s3:
   region: us-west-2
   regexp: kubecf-bundle-v(.*).tgz
 schedule:
+  interval: 24h
   start: 12:00 AM
   stop: 1:00 AM
   location: America/Vancouver
