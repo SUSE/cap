@@ -68,6 +68,15 @@ resources:
     regexp: {{ $config.s3.regexp }}
     region_name: {{ $config.s3.region }}
 
+{{- if eq $config.schedule.enabled true }}
+- name: schedule-interval
+  type: time
+  source:
+    start: {{ $config.schedule.start }}
+    stop: {{ $config.schedule.stop }}
+    location: {{ $config.schedule.location }}
+{{ end }}
+
 {{- if index $config.jobs "deploy-stratos" }}
 - name: helm-chart.stratos-chart
   type: helm-chart

@@ -2,7 +2,7 @@ workertags:
   # caasp4: suse-internal
 
 jobs:
-  deploy-k8s: false
+  deploy-k8s: true
   deploy-kubecf: true
   smoke-tests: true
   cf-acceptance-tests-brain: true
@@ -49,3 +49,9 @@ s3:
   bucket: kubecf
   region: us-west-2
   regexp: kubecf-bundle-v(.*).tgz
+# Scheduling is required for nightly builds, enabling it removes regular trigger on kubecf bundle.
+schedule:
+  enabled: true
+  start: 12:00 AM
+  stop: 12:10 AM
+  location: America/Vancouver
