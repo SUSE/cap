@@ -72,7 +72,6 @@ resources:
 - name: schedule-interval
   type: time
   source:
-    interval: {{ $config.schedule.interval }}
     start: {{ $config.schedule.start }}
     stop: {{ $config.schedule.stop }}
     location: {{ $config.schedule.location }}

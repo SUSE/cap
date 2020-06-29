@@ -52,7 +52,6 @@ s3:
 # Scheduling is required for nightly builds, enabling it removes regular trigger on kubecf bundle.
 schedule:
   enabled: true
-  interval: 24h
   start: 12:00 AM
-  stop: 1:00 AM
+  stop: 12:10 AM
   location: America/Vancouver
