@@ -1,0 +1,10 @@
+{{ define "scripts_upgrade_kubecf" }}
+{{- /* Attention: PWD = ___/catapult here */}}
+{{- /* upgrade kubecf */}}
+export SCF_CHART="$(readlink -f ../s3.cap-release-artifacts/*.tgz)"
+export DOCKER_ORG=cap-staging
+export QUIET_OUTPUT=true
+make kubecf-chart # this takes the same chart as the deploy step for now
+make kubecf-gen-config
+make kubecf-upgrade
+{{ end }}

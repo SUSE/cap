@@ -1,0 +1,9 @@
+{{ define "scripts_deploy_kubecf" }}
+{{- /* Attention: PWD = ___/catapult here */}}
+{{- /* deploy kubecf from chart */}}
+#export SCF_CHART="$(readlink -f ../s3.kubecf-bundle/*.tgz)"
+export SCF_HELM_VERSION=true
+export DOCKER_ORG=cap-staging
+export QUIET_OUTPUT=true
+make kubecf && make kubecf-login # ensure cf is there
+{{ end }}

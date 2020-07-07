@@ -7,8 +7,16 @@
 {{- if index $.jobs $job -}}
 - {{ $job }}
 {{ end }}{{ end }}{{ end }}
+
+{{- /* Same as above, but for upgrade jobs */ -}}
+{{- define "jobs_upgrade" -}}
+{{- range $_, $job := .jobs_upgrade_ordered -}}
+{{- if index $.jobs $job -}}
+- {{ $job }}
+{{ end }}{{ end }}{{ end }}
 # Create array of jobs which are enabled, using jobs_ordered array from config
 {{ $jobs_enabled := (tmpl.Exec "jobs_ordered" $config |  data.YAMLArray ) }}
+{{ $jobs_upgrade_enabled := (tmpl.Exec "jobs_upgrade" $config | data.YAMLArray ) }}
 
 groups:
 {{- range $backend, $enabled := $config.backends }}{{ if $enabled }}
@@ -125,6 +133,17 @@ resources:
 
 jobs:
 {{- range $job_index, $job := $jobs_enabled }}
+{{- range $backend, $enabled :=  $config.backends }}{{ if $enabled }}
+{{- range $avail, $enabled := $config.availabilities }}{{ if $enabled }}
+{{- range $scheduler, $enabled := $config.schedulers }}{{ if $enabled }}
+{{- $context := $context | merge (dict "position" $job_index "backend" $backend "avail" $avail "scheduler" $scheduler) -}}
+{{ tmpl.Exec ( print "jobs_" $job ) $context }}
+{{- end }}{{ end }}
+{{- end }}{{ end }}
+{{- end }}{{ end }}
+{{- end }}
+
+{{- range $job_index, $job := $jobs_upgrade_enabled }}
 {{- range $backend, $enabled :=  $config.backends }}{{ if $enabled }}
 {{- range $avail, $enabled := $config.availabilities }}{{ if $enabled }}
 {{- range $scheduler, $enabled := $config.schedulers }}{{ if $enabled }}
