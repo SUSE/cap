@@ -1,14 +1,11 @@
 ---
 {{- $config := (datasource "config") }}
 
-{{- /* Iterate over config jobs_enabled and jobs to get ordered array of enabled jobs */ -}}
-{{- define "jobs_ordered" -}}
-{{- range $_, $job := .jobs_ordered -}}
-{{- if index $.jobs $job -}}
-- {{ $job }}
-{{ end }}{{ end }}{{ end }}
-# Create array of jobs which are enabled, using jobs_ordered array from config
-{{ $jobs_enabled := (tmpl.Exec "jobs_ordered" $config |  data.YAMLArray ) }}
+{{- $jobs_enabled := slice }}
+{{- range $_, $job := $config.jobs_ordered }}
+{{- if index $config.jobs $job }}
+{{- $jobs_enabled = $jobs_enabled | append $job }}
+{{- end }}{{ end }}
 
 groups:
 {{- range $backend, $enabled := $config.backends }}{{ if $enabled }}

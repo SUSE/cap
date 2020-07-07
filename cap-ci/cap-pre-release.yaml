@@ -4,21 +4,23 @@ workertags:
 jobs:
   deploy-k8s: true
   deploy-kubecf: true
-  smoke-tests: true
+  pre-upgrade-smoke-tests: true
   cf-acceptance-tests-brain: true
   cf-acceptance-tests: true
   sync-integration-tests: true
   upgrade-kubecf: true
+  post-upgrade-smoke-tests: true
   deploy-stratos: true
   destroy-kubecf: true
 jobs_ordered:
 - deploy-k8s
 - deploy-kubecf
-- smoke-tests
+- pre-upgrade-smoke-tests
 - cf-acceptance-tests-brain
 - cf-acceptance-tests
 - sync-integration-tests
 - upgrade-kubecf
+- post-upgrade-smoke-tests
 - deploy-stratos
 - destroy-kubecf
 backends:
