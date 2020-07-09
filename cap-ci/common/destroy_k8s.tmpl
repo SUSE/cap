@@ -23,6 +23,8 @@ on_failure:
         - name: catapult
         - name: pool.kube-hosts
         - name: tfstate-pool
+        outputs:
+        - name: catapult
         params:
           BACKEND: {{ .backend }}
           QUIET_OUTPUT: true
@@ -35,6 +37,7 @@ on_failure:
             - |
               {{ tmpl.Exec "scripts_obtain_kubeconfig" | indent 14 | trimSpace }}
               {{ tmpl.Exec ( print "scripts_import_" .backend ) | indent 14 | trimSpace }}
+              {{ tmpl.Exec "scripts_klog" | indent 14 | trimSpace }}
               {{ tmpl.Exec "scripts_destroy_k8s" | indent 14 | trimSpace }}
     - put: {{ .backend }}-pool.kube-hosts
       params:
@@ -44,4 +47,7 @@ on_failure:
       params:
         remove: tfstate-pool
         depth: 1
+    - put: s3.klog-destination
+      params:
+        file: catapult/klog-*.tar.gz
 {{ end }}
