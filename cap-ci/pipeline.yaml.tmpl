@@ -68,6 +68,7 @@ resources:
     regexp: {{ $config.s3.regexp }}
     region_name: {{ $config.s3.region }}
 
+{{- if $config.logs.enabled }}
 - name: s3.klog-destination
   type: s3
   source:
@@ -77,6 +78,7 @@ resources:
     regexp: klog-(.*)\.tar\.gz$
     region_name: us-west-2
     endpoint: null
+{{ end }}
 
 {{- if eq $config.schedule.enabled true }}
 - name: schedule-interval
