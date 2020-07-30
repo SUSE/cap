@@ -1,0 +1,9 @@
+{{ define "scripts_pre_upgrade_deploy_kubecf" }}
+{{- /* Attention: PWD = ___/catapult here */}}
+{{- /* deploy kubecf from chart */}}
+export SCF_CHART="$(readlink -f ../helm-chart.kubecf-chart/*.tgz)"
+export OPERATOR_CHART_URL="$(readlink -f ../helm-chart.cfo-chart/*.tgz)"
+export DOCKER_ORG=cap-staging
+export QUIET_OUTPUT=true
+make kubecf && make kubecf-login # ensure cf is there
+{{ end }}
