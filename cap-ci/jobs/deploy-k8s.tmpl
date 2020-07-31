@@ -33,8 +33,6 @@
       outputs:
       - name: kubeconfig-pool
         path: kubeconfig-pool
-      - name: tfstate-pool
-        path: tfstate-pool
       params:
         BACKEND: {{ .backend }}
         QUIET_OUTPUT: true
@@ -48,11 +46,6 @@
   - put: {{ .backend }}-pool.kube-hosts
     params:
       add_claimed: kubeconfig-pool
-      depth: 1
-    timeout: 20m
-  - put: tfstate-pool
-    params:
-      add_claimed: tfstate-pool
       depth: 1
     timeout: 20m
   {{ tmpl.Exec "common_destroy_k8s" . | indent 2 | trimSpace }}

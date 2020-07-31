@@ -12,14 +12,6 @@
     - {{ index .jobs_enabled (sub .position 1) }}-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
     {{- end }}
     trigger: true
-  {{- if index .jobs "deploy-k8s" }}
-  - get: tfstate-pool
-    {{- if ne .position 0 }}
-    passed:
-    - {{ index .jobs_enabled (sub .position 1) }}-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
-    {{- end }}
-    trigger: true
-  {{- end }}
   - task: upgrade-{{ .scheduler }}
     {{- if has .workertags .backend }}
     tags: [{{ index .workertags .backend }}]

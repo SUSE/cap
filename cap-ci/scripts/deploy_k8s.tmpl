@@ -16,24 +16,21 @@ ssh-add $PWD/sshkey
 if [[ ${BACKEND} == "gke" ]]; then
   printf "%s" '((gke-key-json))' > $PWD/gke-key.json
   export GKE_CRED_JSON=$PWD/gke-key.json
-  (cd catapult; BACKEND=${BACKEND} GKE_CREDS_JSON=$GKE_CRED_JSON GKE_CLUSTER_NAME=${CLUSTER_NAME} CLUSTER_NAME=${CLUSTER_NAME} TF_KEY=${TF_KEY} make k8s)
+  (cd catapult; BACKEND=gke GKE_CREDS_JSON=$GKE_CRED_JSON GKE_CLUSTER_NAME=${CLUSTER_NAME} CLUSTER_NAME=${CLUSTER_NAME} TF_KEY=${TF_KEY} make k8s)
   cp catapult/build${CLUSTER_NAME}/kubeclusterreference kubeconfig-pool/metadata
 elif [[ ${BACKEND} == "aks" ]]; then
   printf "%s" '((azure-dns-json))' > $PWD/azure-dns-key.json
   export AZURE_DNS_JSON_PATH=$PWD/azure-dns-key.json
-  (cd catapult; BACKEND=${BACKEND} AZURE_APP_ID='((azure-sp-creds.app_id))' AZURE_PASSWORD='((azure-sp-creds.password))' AZURE_TENANT_ID='((azure-sp-creds.tenant_id))' AZURE_SUBSCRIPTION_ID='((azure-sp-creds.subscription_id))' AZURE_DNS_JSON=${AZURE_DNS_JSON_PATH} AZURE_RESOURCE_GROUP=${CLUSTER_NAME}-rg AZURE_CLUSTER_NAME=${CLUSTER_NAME} CLUSTER_NAME=${CLUSTER_NAME} TF_KEY=${TF_KEY} make k8s)
+  (cd catapult; BACKEND=aks AZURE_APP_ID='((azure-sp-creds.app_id))' AZURE_PASSWORD='((azure-sp-creds.password))' AZURE_TENANT_ID='((azure-sp-creds.tenant_id))' AZURE_SUBSCRIPTION_ID='((azure-sp-creds.subscription_id))' AZURE_DNS_JSON=${AZURE_DNS_JSON_PATH} AZURE_RESOURCE_GROUP=${CLUSTER_NAME}-rg AZURE_CLUSTER_NAME=${CLUSTER_NAME} CLUSTER_NAME=${CLUSTER_NAME} TF_KEY=${TF_KEY} make k8s)
   cp catapult/build${CLUSTER_NAME}/kubeconfig kubeconfig-pool/metadata
 elif [[ ${BACKEND} == "eks" ]]; then
   export KEYPAIR=ssh-key-ci
-  (cd catapult; BACKEND=${BACKEND} EKS_KEYPAIR=${KEYPAIR} EKS_DEPLOYER_ROLE_ARN='((aws-service-account-ci-creds.deployer-role-arn))' EKS_CLUSTER_ROLE_NAME='((aws-service-account-ci-creds.cluster-role-name))' EKS_CLUSTER_ROLE_ARN='((aws-service-account-ci-creds.cluster-role-arn))' EKS_WORKER_NODE_ROLE_NAME='((aws-service-account-ci-creds.worker-node-role-name))' EKS_WORKER_NODE_ROLE_ARN='((aws-service-account-ci-creds.worker-node-role-arn))' KUBE_AUTHORIZED_ROLE_ARN='((aws-service-account-ci-creds.kube-authorized-role-arn))' EKS_CLUSTER_NAME=${CLUSTER_NAME} CLUSTER_NAME=${CLUSTER_NAME} make k8s)
+  (cd catapult; BACKEND=eks EKS_KEYPAIR=${KEYPAIR} EKS_DEPLOYER_ROLE_ARN='((aws-service-account-ci-creds.deployer-role-arn))' EKS_CLUSTER_ROLE_NAME='((aws-service-account-ci-creds.cluster-role-name))' EKS_CLUSTER_ROLE_ARN='((aws-service-account-ci-creds.cluster-role-arn))' EKS_WORKER_NODE_ROLE_NAME='((aws-service-account-ci-creds.worker-node-role-name))' EKS_WORKER_NODE_ROLE_ARN='((aws-service-account-ci-creds.worker-node-role-arn))' KUBE_AUTHORIZED_ROLE_ARN='((aws-service-account-ci-creds.kube-authorized-role-arn))' EKS_CLUSTER_NAME=${CLUSTER_NAME} CLUSTER_NAME=${CLUSTER_NAME} TF_KEY=${TF_KEY} make k8s)
   echo ${CLUSTER_NAME} > kubeconfig-pool/name
   cp catapult/build${CLUSTER_NAME}/kubeconfig kubeconfig-pool/metadata
 else
   echo "CI cannot create ${BACKEND} cluster"
   exit 1
 fi
-{{- /* copying tfstate info */}}
 echo ${CLUSTER_NAME} > kubeconfig-pool/name
-echo tf-${CLUSTER_NAME}.zip > tfstate-pool/name
-cp catapult/build${CLUSTER_NAME}/tf-setup.zip tfstate-pool/metadata
 {{ end }}

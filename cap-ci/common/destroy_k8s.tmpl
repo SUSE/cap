@@ -22,7 +22,6 @@ on_failure:
         inputs:
         - name: catapult
         - name: pool.kube-hosts
-        - name: tfstate-pool
         params:
           BACKEND: {{ .backend }}
           QUIET_OUTPUT: true
@@ -39,9 +38,5 @@ on_failure:
     - put: {{ .backend }}-pool.kube-hosts
       params:
         remove: {{ .backend }}-pool.kube-hosts
-        depth: 1
-    - put: tfstate-pool
-      params:
-        remove: tfstate-pool
         depth: 1
 {{ end }}

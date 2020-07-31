@@ -1,19 +1,31 @@
 {{ define "scripts_destroy_k8s" }}
 {{- /* delete k8s cluster */}}
-cp ../tfstate-pool/metadata tfstate.zip
-export TFSTATE=$PWD/tfstate.zip
 export AWS_ACCESS_KEY_ID='((aws-service-account-ci-creds.access-key))'
 export AWS_SECRET_ACCESS_KEY='((aws-service-account-ci-creds.secret-key))'
 if [[ ${BACKEND} == "gke" ]]; then
     printf "%s" '((gke-key-json))' > $PWD/gke-key.json
     export GKE_CRED_JSON=$PWD/gke-key.json
+    export GKE_CLUSTER_NAME=${CLUSTER_NAME}
 elif [[ ${BACKEND} == "aks" ]]; then
     printf "%s" '((azure-dns-json))' > $PWD/azure-dns-key.json
+    export AZURE_RESOURCE_GROUP=${CLUSTER_NAME}-rg
+    export AZURE_CLUSTER_NAME=${CLUSTER_NAME}
     export AZURE_DNS_JSON=$PWD/azure-dns-key.json
     export AZURE_APP_ID='((azure-sp-creds.app_id))'
     export AZURE_PASSWORD='((azure-sp-creds.password))'
     export AZURE_TENANT_ID='((azure-sp-creds.tenant_id))'
     export AZURE_SUBSCRIPTION_ID='((azure-sp-creds.subscription_id))'
+elif [[ ${BACKEND} == "eks" ]]; then
+    export KEYPAIR=ssh-key-ci
+    export EKS_KEYPAIR=${KEYPAIR}
+    export EKS_DEPLOYER_ROLE_ARN='((aws-service-account-ci-creds.deployer-role-arn))'
+    export EKS_CLUSTER_ROLE_NAME='((aws-service-account-ci-creds.cluster-role-name))'
+    export EKS_CLUSTER_ROLE_ARN='((aws-service-account-ci-creds.cluster-role-arn))'
+    export EKS_WORKER_NODE_ROLE_NAME='((aws-service-account-ci-creds.worker-node-role-name))'
+    export EKS_WORKER_NODE_ROLE_ARN='((aws-service-account-ci-creds.worker-node-role-arn))'
+    export KUBE_AUTHORIZED_ROLE_ARN='((aws-service-account-ci-creds.kube-authorized-role-arn))'
+    export EKS_CLUSTER_NAME=${CLUSTER_NAME}
 fi
+export TF_KEY=${CLUSTER_NAME}
 make clean
 {{ end }}
