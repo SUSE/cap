@@ -1,0 +1,9 @@
+{{ define "scripts_klog" }}
+{{- /* Attention: PWD = ___/catapult here */}}
+{{- /* run test suites on cluster */}}
+{{- /* See: https://github.com/SUSE/catapult/wiki/Running-SCF-tests#kubecf */}}
+export KUBECF_NAMESPACE="scf"
+export QUIET_OUTPUT=true
+make kubecf-klog
+mv build${CLUSTER_NAME}/klog.tar.gz klog-${CLUSTER_NAME}-$(date +"%m_%d_%Y-%H_%M").tar.gz
+{{ end }}

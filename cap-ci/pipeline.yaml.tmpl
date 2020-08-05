@@ -68,6 +68,18 @@ resources:
     regexp: {{ $config.s3.regexp }}
     region_name: {{ $config.s3.region }}
 
+{{- if $config.logs.enabled }}
+- name: s3.klog-destination
+  type: s3
+  source:
+    bucket: kubecf-klog
+    access_key_id: ((aws-access-key))
+    secret_access_key: ((aws-secret-key))
+    regexp: klog-(.*)\.tar\.gz$
+    region_name: us-west-2
+    endpoint: null
+{{ end }}
+
 {{- if eq $config.schedule.enabled true }}
 - name: schedule-interval
   type: time
