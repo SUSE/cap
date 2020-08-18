@@ -15,7 +15,7 @@ resources:
     region_name: {{ .region }}
     access_key_id: {{ index (datasource "concourse-secrets") "aws-capbot-access-key" }}
     secret_access_key: {{ index (datasource "concourse-secrets") "aws-capbot-secret-key" }}
-    regexp: CAP-(.*).tgz
+    regexp: {{ .s3_regexp }}
 
 - name: helm-charts-repo
   type: git
