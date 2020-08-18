@@ -7,3 +7,4 @@ helm_charts_repo_uri: git@github.com:SUSE/kubernetes-charts-suse-com.git
 helm_charts_repo_branch: master
 github_mail: cf-ci-bot@suse.de
 github_user: suse-cf-ci-bot
+s3_regexp: CAP-(.*).tgz
