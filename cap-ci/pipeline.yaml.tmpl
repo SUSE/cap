@@ -80,6 +80,24 @@ resources:
     endpoint: null
 {{ end }}
 
+{{- if index $config.jobs "pre-upgrade-deploy-kubecf" }}
+- name: helm-chart.kubecf-chart
+  type: helm-chart
+  source:
+    chart: suse/kubecf
+    repos:
+    - name: suse
+      url: https://kubernetes-charts.suse.com/
+
+- name: helm-chart.cfo-chart
+  type: helm-chart
+  source:
+    chart: suse/cf-operator
+    repos:
+    - name: suse
+      url: https://kubernetes-charts.suse.com/
+{{ end }}
+
 {{- if eq $config.schedule.enabled true }}
 - name: schedule-interval
   type: time
