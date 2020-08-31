@@ -1,5 +1,5 @@
-{{ define "jobs_smoke-tests" }}
-- name: smoke-tests-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
+{{ define "common_smoke_tests" }}
+- name: {{ .prefix }}smoke-tests-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
   serial_groups: [{{ .scheduler }}-{{ .backend }}-{{ .avail }}]
   public: false
   plan:
