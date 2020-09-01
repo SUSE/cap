@@ -34,9 +34,17 @@ on_failure:
             - |
               {{ tmpl.Exec "scripts_obtain_kubeconfig" | indent 14 | trimSpace }}
               {{ tmpl.Exec ( print "scripts_import_" .backend ) | indent 14 | trimSpace }}
+  {{- if eq .logs.enabled true }}
+              {{ tmpl.Exec "scripts_klog" | indent 14 | trimSpace }}
+  {{ end }}
               {{ tmpl.Exec "scripts_destroy_k8s" | indent 14 | trimSpace }}
     - put: {{ .backend }}-pool.kube-hosts
       params:
         remove: {{ .backend }}-pool.kube-hosts
         depth: 1
+  {{- if eq .logs.enabled true }}
+    - put: s3.klog-destination
+      params:
+        file: catapult/klog-*.tar.gz
+  {{ end }}
 {{ end }}
