@@ -22,6 +22,9 @@ on_failure:
         inputs:
         - name: catapult
         - name: pool.kube-hosts
+        outputs:
+        # used for passing catapult/ contents between steps, such as for klog upload
+        - name: catapult
         params:
           BACKEND: {{ .backend }}
           QUIET_OUTPUT: true
