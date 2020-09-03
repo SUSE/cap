@@ -22,8 +22,8 @@ on_failure:
         inputs:
         - name: catapult
         - name: pool.kube-hosts
-        - name: tfstate-pool
         outputs:
+        # used for passing catapult/ contents between steps, such as for klog upload
         - name: catapult
         params:
           BACKEND: {{ .backend }}
@@ -44,10 +44,6 @@ on_failure:
     - put: {{ .backend }}-pool.kube-hosts
       params:
         remove: {{ .backend }}-pool.kube-hosts
-        depth: 1
-    - put: tfstate-pool
-      params:
-        remove: tfstate-pool
         depth: 1
   {{- if eq .logs.enabled true }}
     - put: s3.klog-destination

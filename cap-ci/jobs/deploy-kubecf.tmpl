@@ -22,9 +22,6 @@
     passed:
     - deploy-k8s-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
     trigger: true
-  - get: tfstate-pool
-    passed:
-    - deploy-k8s-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
   {{- else }}
   - put: {{ .backend }}-pool.kube-hosts
     params:

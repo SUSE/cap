@@ -125,16 +125,6 @@ resources:
       url: http://opensource.suse.com/stratos-metrics/
 {{ end }}
 
-{{- if or (index $config.jobs "deploy-k8s") (index $config.jobs "destroy-k8s") }}
-- name: tfstate-pool
-  type: pool
-  source:
-    uri: git@github.com:SUSE/cf-ci-pools.git
-    private_key: ((github-private-key))
-    branch: tfstate
-    pool: tfstate
-{{- end }}
-
 # Pool resources with kube cluster information
 {{- range $backend, $enabled := $config.backends }}{{ if $enabled }}
 - name: {{ $backend }}-pool.kube-hosts
