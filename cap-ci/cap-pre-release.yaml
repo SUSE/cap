@@ -55,3 +55,5 @@ schedule:
   start: 12:00 AM
   stop: 12:10 AM
   location: America/Vancouver
+logs:
+  enabled: true
