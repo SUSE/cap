@@ -59,6 +59,7 @@ resources:
     branch: {{ $config.catapult.branch }}
     uri: {{ $config.catapult.uri }}
 
+{{- if index $config.jobs "deploy-k8s" }}
 - name: s3.kubecf-bundle
   type: s3
   source:
@@ -67,6 +68,30 @@ resources:
     secret_access_key: ((aws-secret-key))
     regexp: {{ $config.s3.regexp }}
     region_name: {{ $config.s3.region }}
+{{ end }}
+
+{{- if index $config.jobs "minibroker-integration-tests" }}
+- name: minibroker-integration-tests
+  type: git
+  source:
+    branch: {{ $config.mits.branch }}
+    uri: {{ $config.mits.uri }}
+
+- name: s3.minibroker
+  type: s3
+  source:
+    bucket: {{ $config.s3minibroker.bucket }}
+    access_key_id: ((aws-cf-user-suse-rd.access-key))
+    secret_access_key: ((aws-cf-user-suse-rd.secret-key))
+    regexp: {{ $config.s3minibroker.regexp }}
+    region_name: {{ $config.s3minibroker.region }}
+
+- name: mits-gh-release
+  type: github-release
+  source:
+    owner: SUSE
+    repository: minibroker-integration-tests
+{{ end}}
 
 {{- if $config.logs.enabled }}
 - name: s3.klog-destination

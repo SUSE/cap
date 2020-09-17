@@ -2,8 +2,45 @@
 {{- /* Attention: PWD = ___/catapult here */}}
 {{- /* run test suites on cluster */}}
 {{- /* See: https://github.com/SUSE/catapult/wiki/Running-SCF-tests#kubecf */}}
-export KUBECF_TEST_SUITE="${KUBECF_TEST_SUITE:-smokes}"
-export KUBECF_NAMESPACE="scf"
-export QUIET_OUTPUT=true
-make tests-kubecf
+
+set -o errexit -o nounset -o pipefail
+
+if [[ "${KUBECF_TEST_SUITE}" == "mits" ]]; then
+    export CLUSTER_NAME=$(cat ../pool.kube-hosts/name)
+    source include/defaults_global_private.sh
+    source build$CLUSTER_NAME/.envrc
+    domain=$(kubectl get configmap -n kube-system cap-values -o json | jq -r '.data["domain"]')
+
+    export CF_ADMIN_PASSWORD=${CLUSTER_PASSWORD}
+    export MINIBROKER_CHART_TARBALL="$(readlink -f ../s3.minibroker/*.tgz)"
+    export MITS_CHART_TARBALL="$(readlink -f ../mits-gh-release/*.tgz)"
+    export CF_API_ENDPOINT="https://api.${domain}"
+
+    cd ../minibroker-integration-tests/
+
+    echo 'Testing with override_params disabled'
+    export CHART_TARBALL=${MINIBROKER_CHART_TARBALL}
+    ./deploy/minibroker.sh
+    export CHART_TARBALL=${MITS_CHART_TARBALL}
+    ./deploy/mits.sh
+
+    helm delete minibroker -n minibroker
+    kubectl delete ns minibroker
+
+    echo 'Testing with override_params enabled'
+    export CHART_TARBALL=${MINIBROKER_CHART_TARBALL}
+    export SET_OVERRIDE_PARAMS=true
+    ./deploy/minibroker.sh
+    export CHART_TARBALL=${MITS_CHART_TARBALL}
+    ./deploy/mits.sh
+
+    helm delete minibroker -n minibroker
+    kubectl delete ns minibroker
+
+else
+    export KUBECF_TEST_SUITE="${KUBECF_TEST_SUITE:-smokes}"
+    export KUBECF_NAMESPACE="scf"
+    export QUIET_OUTPUT=true
+    make tests-kubecf
+fi
 {{ end }}
