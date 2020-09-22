@@ -50,9 +50,9 @@ cats:
   flake-attempts: 5
   timeout-scale: "3.0"
 s3minibroker:
-  bucket: minibroker-helm-charts/minibroker-charts
+  bucket: minibroker-helm-charts
   region: us-east-1
-  regexp: minibroker-(*).tgz
+  regexp: minibroker-charts/minibroker-(.*).tgz
 s3:
   bucket: cap-release-artifacts
   regexp: CAP-(.*).tgz
