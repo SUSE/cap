@@ -1,0 +1,39 @@
+{{ define "scripts_test_mits" }}
+{{- /* Attention: PWD = ___/catapult here */}}
+{{- /* run mits suite on cluster */}}
+
+set -o errexit -o nounset -o pipefail
+
+export CLUSTER_NAME=$(cat ../pool.kube-hosts/name)
+source include/defaults_global_private.sh
+source build$CLUSTER_NAME/.envrc
+domain=$(kubectl get configmap -n kube-system cap-values -o json | jq -r '.data["domain"]')
+
+export CF_ADMIN_PASSWORD=${CLUSTER_PASSWORD}
+export MINIBROKER_CHART_TARBALL="$(readlink -f ../s3.minibroker/*.tgz)"
+export MITS_CHART_TARBALL="$(readlink -f ../mits-gh-release/*.tgz)"
+export CF_API_ENDPOINT="https://api.${domain}"
+
+cd ../mits-gh-release/
+tar zxvf source.tar.gz
+
+echo 'Testing with override_params disabled'
+export CHART_TARBALL=${MINIBROKER_CHART_TARBALL}
+./SUSE-minibroker-integration-tests-*/deploy/minibroker.sh
+export CHART_TARBALL=${MITS_CHART_TARBALL}
+./SUSE-minibroker-integration-tests-*/deploy/mits.sh
+
+helm delete minibroker -n minibroker
+kubectl delete ns minibroker
+
+echo 'Testing with override_params enabled'
+export CHART_TARBALL=${MINIBROKER_CHART_TARBALL}
+export SET_OVERRIDE_PARAMS=true
+./SUSE-minibroker-integration-tests-*/deploy/minibroker.sh
+export CHART_TARBALL=${MITS_CHART_TARBALL}
+./SUSE-minibroker-integration-tests-*/deploy/mits.sh
+
+helm delete minibroker -n minibroker
+kubectl delete ns minibroker
+
+{{ end }}
