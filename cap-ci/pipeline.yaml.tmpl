@@ -71,12 +71,6 @@ resources:
 {{- end }}
 
 {{- if index $config.jobs "minibroker-integration-tests" }}
-- name: minibroker-integration-tests
-  type: git
-  source:
-    branch: {{ $config.mits.branch }}
-    uri: {{ $config.mits.uri }}
-
 - name: s3.minibroker
   type: s3
   source:
@@ -91,7 +85,7 @@ resources:
   source:
     owner: SUSE
     repository: minibroker-integration-tests
-{{ end }}
+{{- end }}
 
 {{- if $config.logs.enabled }}
 - name: s3.klog-destination

@@ -38,9 +38,6 @@ schedulers:
 catapult:
   uri: https://github.com/SUSE/catapult
   branch: master
-minibroker-integration-tests:
-  uri: https://github.com/SUSE/minibroker-integration-tests.git
-  branch: master
 brain:
   verbose: false
   inorder: false
