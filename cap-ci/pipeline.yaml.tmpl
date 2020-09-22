@@ -68,7 +68,7 @@ resources:
     secret_access_key: ((aws-secret-key))
     regexp: {{ $config.s3.regexp }}
     region_name: {{ $config.s3.region }}
-{{ end }}
+{{- end }}
 
 {{- if index $config.jobs "minibroker-integration-tests" }}
 - name: minibroker-integration-tests
