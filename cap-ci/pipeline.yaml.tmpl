@@ -59,7 +59,6 @@ resources:
     branch: {{ $config.catapult.branch }}
     uri: {{ $config.catapult.uri }}
 
-{{- if index $config.jobs "deploy-k8s" }}
 - name: s3.kubecf-bundle
   type: s3
   source:
@@ -68,7 +67,6 @@ resources:
     secret_access_key: ((aws-secret-key))
     regexp: {{ $config.s3.regexp }}
     region_name: {{ $config.s3.region }}
-{{- end }}
 
 {{- if index $config.jobs "minibroker-integration-tests" }}
 - name: s3.minibroker
