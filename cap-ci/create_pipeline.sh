@@ -70,16 +70,16 @@ fly_args=(
 
 # Space-separated paths to template files and directories which contain template
 # files.
-template_paths="scripts jobs common"
-templates=$(find ${template_paths} -type f -exec echo "--template="{} \;)
+template_paths=("scripts" "jobs" "common")
+templates=$(find "${template_paths[@]}" -type f -exec echo "--template="{} \;)
 pipeline_file=${3:-pipeline.yaml.tmpl}
 
 # Determine if the pipeline being pushed is a new pipeline.
 existing_pipeline_job_count=$(
   fly \
-    --target ${target} \
+    --target "${target}" \
     get-pipeline \
-    --pipeline ${PIPELINE} \
+    --pipeline "${PIPELINE}" \
     --json \
     | jq '.jobs | length')
 if [[ ${existing_pipeline_job_count} -gt 0 ]]; then
@@ -88,7 +88,9 @@ else
   pipeline_already_existed=false
 fi
 
-# Push a new pipeline, or update an existing one.
+# Push a new pipeline, or update an existing one. We want ${templates} to expand
+# as multiple arguments, this is why SC2086 is disabled in shellcheck.
+# shellcheck disable=SC2086
 fly "${fly_args[@]}" --config <(
   gomplate \
     --verbose \
