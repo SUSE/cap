@@ -31,7 +31,8 @@ if [[ -z "$2" ]]; then
 else
     export PIPELINE=${2}
     if [[ "${PIPELINE}" == "cap-release" || "${PIPELINE}" == "cap-pre-release" ]]; then
-        printf "This will modify the production pipeline: ${PIPELINE}. Are you sure you want to proceed?(yes/no): "
+        echo "WARNING! This will modify the production pipeline: ${PIPELINE}."
+        printf "Are you sure you want to proceed? (yes/no): "
         read -r ans
         if [[ "$ans" != "y" && "$ans" != "yes" ]]; then
             >&2 echo "ERROR: Operation aborted."
