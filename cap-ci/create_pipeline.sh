@@ -10,51 +10,52 @@ set -o errexit -o nounset -o pipefail
 # cap-pre-release.yaml, cap-release.yaml or your own.
 
 if ! hash gomplate 2>/dev/null; then
-    >&2 echo "ERROR: 'gomplate' missing. https://docs.gomplate.ca/installing/."
-    exit 1
+  >&2 echo "ERROR: 'gomplate' missing. https://docs.gomplate.ca/installing/."
+  exit 1
 fi
 
 usage() {
-    >&2 echo "USAGE:"
-    >&2 echo "$0 CONCOURSE_TARGET PIPELINE [PIPELINE_FILE]"
+  >&2 echo "USAGE:"
+  >&2 echo "$0 CONCOURSE_TARGET PIPELINE [PIPELINE_FILE]"
 }
 
 if [[ -z "$1" ]]; then
-    >&2 echo "ERROR: Concourse target not provided."
-    usage
-    exit 1
+  >&2 echo "ERROR: Concourse target not provided."
+  usage
+  exit 1
 else
-    target=$1
+  target=$1
 fi
 
 if [[ -z "$2" ]]; then
-    >&2 echo "ERROR: Pipeline name not provided."
+  >&2 echo "ERROR: Pipeline name not provided."
+  usage
+  exit 1
+else
+  export PIPELINE=${2}
+  if [[ "${PIPELINE}" == "cap-release" || "${PIPELINE}" == "cap-pre-release" ]]; then
+    echo "WARNING! This will modify the production pipeline: ${PIPELINE}."
+    printf "Are you sure you want to proceed? (yes/no): "
+    read -r ans
+    if [[ "$ans" != "y" && "$ans" != "yes" ]]; then
+      >&2 echo "ERROR: Operation aborted."
+      exit 1
+    fi
+  fi
+
+  if test -f "${PIPELINE}".yaml; then
+    pipeline_config=${PIPELINE}.yaml
+  else
+    >&2 echo "ERROR: Config file ${PIPELINE}.yaml doesn't exist."
     usage
     exit 1
-else
-    export PIPELINE=${2}
-    if [[ "${PIPELINE}" == "cap-release" || "${PIPELINE}" == "cap-pre-release" ]]; then
-        echo "WARNING! This will modify the production pipeline: ${PIPELINE}."
-        printf "Are you sure you want to proceed? (yes/no): "
-        read -r ans
-        if [[ "$ans" != "y" && "$ans" != "yes" ]]; then
-            >&2 echo "ERROR: Operation aborted."
-            exit 1
-        fi
-    fi
-    if test -f "${PIPELINE}".yaml; then
-        pipeline_config=${PIPELINE}.yaml
-    else
-        >&2 echo "ERROR: Config file ${PIPELINE}.yaml doesn't exist."
-        usage
-        exit 1
-    fi
+  fi
 fi
 
 fly_args=(
-    "--target=${target}"
-    "set-pipeline"
-    "--pipeline=${PIPELINE}"
+  "--target=${target}"
+  "set-pipeline"
+  "--pipeline=${PIPELINE}"
 )
 
 # Space-separated paths to template files and directories which contain template
