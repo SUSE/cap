@@ -7,17 +7,17 @@ set -o errexit -o nounset -o pipefail
 # You can configure all the required values in config yamls: cap-pre-release.yaml, cap-release.yaml or your own.
 
 if ! hash gomplate 2>/dev/null; then
-    echo "gomplate missing. Follow the instructions in https://docs.gomplate.ca/installing/ and install it first."
+    >&2 echo "ERROR: 'gomplate' missing. https://docs.gomplate.ca/installing/."
     exit 1
 fi
 
 usage() {
-    echo "USAGE:"
-    echo "$0 CONCOURSE_TARGET PIPELINE [PIPELINE_FILE]"
+    >&2 echo "USAGE:"
+    >&2 echo "$0 CONCOURSE_TARGET PIPELINE [PIPELINE_FILE]"
 }
 
 if [[ -z "$1" ]]; then
-    echo "Concourse target not provided."
+    >&2 echo "ERROR: Concourse target not provided."
     usage
     exit 1
 else
@@ -25,7 +25,7 @@ else
 fi
 
 if [[ -z "$2" ]]; then
-    echo "Pipeline name not provided."
+    >&2 echo "ERROR: Pipeline name not provided."
     usage
     exit 1
 else
@@ -34,14 +34,14 @@ else
         printf "This will modify the production pipeline: ${PIPELINE}. Are you sure you want to proceed?(yes/no): "
         read -r ans
         if [[ "$ans" != "y" && "$ans" != "yes" ]]; then
-            echo "Operation aborted."
+            >&2 echo "ERROR: Operation aborted."
             exit 1
         fi
     fi
     if test -f "${PIPELINE}".yaml; then
         pipeline_config=${PIPELINE}.yaml
     else
-        echo "Config file ${PIPELINE}.yaml doesn't exist."
+        >&2 echo "ERROR: Config file ${PIPELINE}.yaml doesn't exist."
         usage
         exit 1
     fi
