@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e
+
+set -o errexit -o nounset -o pipefail
 
 # NOTE for now, add your cluster's kubeconfig in git@github.com:SUSE/cf-ci-pools.git on branch ${BACKEND}-kube-hosts in unclaimed folder
 # Usage example: ./create_pipeline.sh <concourse-target> <pipeline-name>>
