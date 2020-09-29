@@ -5,11 +5,13 @@
 set -o errexit -o nounset -o pipefail
 
 export CLUSTER_NAME=$(cat ../pool.kube-hosts/name)
-source include/defaults_global_private.sh
 source build$CLUSTER_NAME/.envrc
 domain=$(kubectl get configmap -n kube-system cap-values -o json | jq -r '.data["domain"]')
+admin_pass=$(kubectl get secret --namespace scf \
+                     var-cf-admin-password \
+                     -o jsonpath='{.data.password}' | base64 --decode)
 
-export CF_ADMIN_PASSWORD=${CLUSTER_PASSWORD}
+export CF_ADMIN_PASSWORD=${admin_pass}
 export MINIBROKER_CHART_TARBALL="$(readlink -f ../s3.minibroker/*.tgz)"
 export MITS_CHART_TARBALL="$(readlink -f ../mits-gh-release/*.tgz)"
 export CF_API_ENDPOINT="https://api.${domain}"
