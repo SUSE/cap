@@ -74,7 +74,7 @@ template_paths="scripts jobs common"
 templates=$(find ${template_paths} -type f -exec echo "--template="{} \;)
 pipeline_file=${3:-pipeline.yaml.tmpl}
 
-# Determine if the pipeline being pushed is a new pipeline
+# Determine if the pipeline being pushed is a new pipeline.
 existing_pipeline_job_count=$(
   fly \
     --target ${target} \
@@ -88,7 +88,7 @@ else
   pipeline_already_existed=false
 fi
 
-# Push a new pipeline, or update an existing one
+# Push a new pipeline, or update an existing one.
 fly "${fly_args[@]}" --config <(
   gomplate \
     --verbose \
