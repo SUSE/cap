@@ -36,8 +36,8 @@ else
   if [[ "${PIPELINE}" == "cap-release" || "${PIPELINE}" == "cap-pre-release" ]]; then
     echo "WARNING! This will modify the production pipeline: ${PIPELINE}."
     printf "Are you sure you want to proceed? (yes/no): "
-    read -r ans
-    if [[ "$ans" != "y" && "$ans" != "yes" ]]; then
+    read -r answer
+    if [[ "${answer}" != "y" && "${answer}" != "yes" ]]; then
       >&2 echo "ERROR: Operation aborted."
       exit 1
     fi
