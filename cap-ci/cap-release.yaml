@@ -10,7 +10,7 @@ jobs:
   minibroker-integration-tests: true
   cf-acceptance-tests: true
   upgrade-kubecf: true
-  deploy-stratos: true
+  deploy-stratos: false
   destroy-kubecf: true
 jobs_ordered:
 - deploy-k8s
@@ -29,8 +29,8 @@ backends:
   gke: true
   eks: true
 availabilities:
-  sa: true
-  ha: true
+  sa: false
+  ha: false
   all: true
 schedulers:
   diego: true
