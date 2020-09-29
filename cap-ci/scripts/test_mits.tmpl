@@ -9,7 +9,7 @@ source build$CLUSTER_NAME/.envrc
 domain=$(kubectl get configmap -n kube-system cap-values -o json | jq -r '.data["domain"]')
 admin_pass=$(kubectl get secret --namespace scf \
                      var-cf-admin-password \
-                     -o jsonpath='{.data.password}' | base64 --decode)
+                     --output 'jsonpath={.data.password}' | base64 --decode)
 
 export CF_ADMIN_PASSWORD=${admin_pass}
 export MINIBROKER_CHART_TARBALL="$(readlink -f ../s3.minibroker/*.tgz)"
