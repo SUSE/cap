@@ -14,6 +14,16 @@ if ! hash gomplate 2>/dev/null; then
   exit 1
 fi
 
+if ! hash jq 2>/dev/null; then
+  >&2 echo "ERROR: 'jq' missing. Install it first."
+  exit 1
+fi
+
+if ! hash fly 2>/dev/null; then
+  >&2 echo "ERROR: 'fly' missing. Install it first."
+  exit 1
+fi
+
 usage() {
   >&2 echo "USAGE:"
   >&2 echo "$0 CONCOURSE_TARGET PIPELINE [PIPELINE_FILE]"
