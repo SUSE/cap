@@ -1,5 +1,5 @@
 workertags:
-  # caasp4: suse-internal
+  caasp4: suse-internal
 
 jobs:
   deploy-k8s: true
