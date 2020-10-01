@@ -1,8 +1,8 @@
 workertags:
-  # caasp4: suse-internal
+  caasp4: suse-internal
 
 jobs:
-  deploy-k8s: true
+  deploy-k8s: false
   deploy-kubecf: true
   smoke-tests: true
   cf-acceptance-tests-brain: true
@@ -52,14 +52,10 @@ s3minibroker:
   region: us-east-1
   regexp: minibroker-charts/minibroker-(.*).tgz
 s3:
-  bucket: kubecf
-  region: us-west-2
-  regexp: kubecf-bundle-v(.*).tgz
-# Scheduling is required for nightly builds, enabling it removes regular trigger on kubecf bundle.
+  bucket: cap-release-artifacts
+  regexp: CAP-(.*).tgz
+  region: us-east-1
 schedule:
-  enabled: true
-  start: 12:00 AM
-  stop: 12:10 AM
-  location: America/Vancouver
+  enabled: false
 logs:
   enabled: true

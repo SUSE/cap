@@ -26,7 +26,7 @@ jobs_ordered:
 - cf-acceptance-tests
 - destroy-kubecf
 backends:
-  caasp4: true
+  caasp4: false
   aks: true
   gke: true
   eks: true

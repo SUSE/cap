@@ -24,7 +24,7 @@ jobs_ordered:
 - deploy-stratos
 - destroy-kubecf
 backends:
-  caasp4: true
+  caasp4: false
   aks: true
   gke: true
   eks: true
