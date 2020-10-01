@@ -28,6 +28,8 @@ elif [[ ${BACKEND} == "eks" ]]; then
   (cd catapult; BACKEND=eks EKS_KEYPAIR=${KEYPAIR} EKS_DEPLOYER_ROLE_ARN='((aws-service-account-ci-creds.deployer-role-arn))' EKS_CLUSTER_ROLE_NAME='((aws-service-account-ci-creds.cluster-role-name))' EKS_CLUSTER_ROLE_ARN='((aws-service-account-ci-creds.cluster-role-arn))' EKS_WORKER_NODE_ROLE_NAME='((aws-service-account-ci-creds.worker-node-role-name))' EKS_WORKER_NODE_ROLE_ARN='((aws-service-account-ci-creds.worker-node-role-arn))' KUBE_AUTHORIZED_ROLE_ARN='((aws-service-account-ci-creds.kube-authorized-role-arn))' EKS_CLUSTER_NAME=${CLUSTER_NAME} CLUSTER_NAME=${CLUSTER_NAME} TF_KEY=${TF_KEY} make k8s)
   echo ${CLUSTER_NAME} > kubeconfig-pool/name
   cp catapult/build${CLUSTER_NAME}/kubeconfig kubeconfig-pool/metadata
+elif [[ ${BACKEND} == "caasp4os" ]]; then
+  echo "CaaSP clusters are already created. Doing nothing."
 else
   echo "CI cannot create ${BACKEND} cluster"
   exit 1
