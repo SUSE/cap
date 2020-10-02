@@ -48,5 +48,8 @@
       add_claimed: kubeconfig-pool
       depth: 1
     timeout: 20m
+  {{- if $config.logs.enabled }}
+  {{ tmpl.Exec "common_klog" . | indent 2 | trimSpace }}
+  {{- end }}
   {{ tmpl.Exec "common_destroy_k8s" . | indent 2 | trimSpace }}
 {{ end }}

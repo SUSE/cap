@@ -35,6 +35,9 @@
             {{ tmpl.Exec "scripts_destroy_stratos" | indent 12 | trimSpace }}
             {{- end}}
             {{ tmpl.Exec "scripts_destroy_kubecf" | indent 12 | trimSpace }}
+  {{- if $config.logs.enabled }}
+  {{ tmpl.Exec "common_klog" . | indent 2 | trimSpace }}
+  {{- end }}
   {{- if index .jobs "deploy-k8s" }}
   {{ tmpl.Exec "common_destroy_k8s" . | indent 2 | trimSpace }}
   {{ else }}
