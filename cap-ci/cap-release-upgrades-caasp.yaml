@@ -2,7 +2,7 @@ workertags:
   caasp4: suse-internal
 
 jobs:
-  deploy-k8s: true
+  deploy-k8s: false
   pre-upgrade-deploy-kubecf: true
   pre-upgrade-smoke-tests: true
   deploy-stratos: false
@@ -26,10 +26,10 @@ jobs_ordered:
 - cf-acceptance-tests
 - destroy-kubecf
 backends:
-  caasp4: false
-  aks: true
-  gke: true
-  eks: true
+  caasp4: true
+  aks: false
+  gke: false
+  eks: false
 availabilities:
   sa: false
   ha: false
