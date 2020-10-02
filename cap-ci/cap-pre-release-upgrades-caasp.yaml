@@ -1,33 +1,35 @@
 workertags:
-  # caasp4: suse-internal
+  caasp4: suse-internal
 
 jobs:
-  deploy-k8s: true
-  deploy-kubecf: true
-  smoke-tests: true
+  deploy-k8s: false
+  pre-upgrade-deploy-kubecf: true
+  pre-upgrade-smoke-tests: true
+  deploy-stratos: false
+  upgrade-kubecf: true
+  post-upgrade-smoke-tests: true
   cf-acceptance-tests-brain: true
   sync-integration-tests: true
   minibroker-integration-tests: true
   cf-acceptance-tests: true
-  upgrade-kubecf: true
-  deploy-stratos: false
   destroy-kubecf: true
 jobs_ordered:
 - deploy-k8s
-- deploy-kubecf
-- smoke-tests
+- pre-upgrade-deploy-kubecf
+- pre-upgrade-smoke-tests
+- deploy-stratos
+- upgrade-kubecf
+- post-upgrade-smoke-tests
 - cf-acceptance-tests-brain
 - sync-integration-tests
 - minibroker-integration-tests
 - cf-acceptance-tests
-- upgrade-kubecf
-- deploy-stratos
 - destroy-kubecf
 backends:
-  caasp4: false
-  aks: true
-  gke: true
-  eks: true
+  caasp4: true
+  aks: false
+  gke: false
+  eks: false
 availabilities:
   sa: false
   ha: false
