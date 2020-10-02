@@ -62,4 +62,4 @@ schedule:
   stop: 12:10 AM
   location: America/Vancouver
 logs:
-  enabled: true
+  enabled: false

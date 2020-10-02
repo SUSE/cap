@@ -60,4 +60,4 @@ s3:
 schedule:
   enabled: false
 logs:
-  enabled: true
+  enabled: false
