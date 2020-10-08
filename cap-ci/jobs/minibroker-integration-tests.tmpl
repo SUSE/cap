@@ -9,7 +9,7 @@
     params:
       include_source_tarball: true
   - get: {{ .backend }}-pool.kube-hosts
-    {{- if ne .position 0 }}
+    {{- if and (ne .position 0) (not .continue_on_failure) }}
     passed:
     - {{ index .jobs_enabled (sub .position 1) }}-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
     {{- end }}
