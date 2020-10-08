@@ -23,6 +23,7 @@ jobs_ordered:
 - upgrade-kubecf
 - deploy-stratos
 - destroy-kubecf
+continue_on_failure: false # continues on job failure, if not deploy or smokes
 backends:
   caasp4: true
   aks: false

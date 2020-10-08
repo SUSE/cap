@@ -25,6 +25,7 @@ jobs_ordered:
 - minibroker-integration-tests
 - cf-acceptance-tests
 - destroy-kubecf
+continue_on_failure: false # continues on job failure, if not deploy or smokes
 backends:
   caasp4: true
   aks: false
