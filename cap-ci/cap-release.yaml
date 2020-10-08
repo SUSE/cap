@@ -30,7 +30,7 @@ backends:
   eks: true
 availabilities:
   sa: false
-  ha: false
+  ha: true
   all: true
 schedulers:
   diego: true

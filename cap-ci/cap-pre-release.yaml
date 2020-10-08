@@ -30,7 +30,7 @@ backends:
   eks: true
 availabilities:
   sa: false
-  ha: false
+  ha: true
   all: true
 schedulers:
   diego: true
@@ -54,10 +54,10 @@ s3minibroker:
 s3:
   bucket: kubecf
   region: us-west-2
-  regexp: kubecf-bundle-v(.*).tgz
+  regexp: kubecf-bundle-v(2.5.*).tgz
 # Scheduling is required for nightly builds, enabling it removes regular trigger on kubecf bundle.
 schedule:
-  enabled: true
+  enabled: false
   start: 12:00 AM
   stop: 12:10 AM
   location: America/Vancouver
