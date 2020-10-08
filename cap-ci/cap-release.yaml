@@ -31,7 +31,7 @@ backends:
 availabilities:
   sa: false
   ha: true
-  all: true
+  all: false
 schedulers:
   diego: true
   eirini: true

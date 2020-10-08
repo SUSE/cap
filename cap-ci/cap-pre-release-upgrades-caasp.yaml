@@ -32,8 +32,8 @@ backends:
   eks: false
 availabilities:
   sa: false
-  ha: false
-  all: true
+  ha: true
+  all: false
 schedulers:
   diego: true
   eirini: true
