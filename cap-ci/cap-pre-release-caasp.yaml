@@ -11,7 +11,7 @@ jobs:
   cf-acceptance-tests: true
   upgrade-kubecf: true
   deploy-stratos: false
-  destroy-kubecf: true
+  destroy-kubecf: false
 jobs_ordered:
 - deploy-k8s
 - deploy-kubecf
