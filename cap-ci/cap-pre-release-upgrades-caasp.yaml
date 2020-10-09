@@ -31,8 +31,8 @@ backends:
   gke: false
   eks: false
 availabilities:
-  sa: false
-  ha: false
+  sa: true
+  ha: true
   all: true
 schedulers:
   diego: true
