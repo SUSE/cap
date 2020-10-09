@@ -12,7 +12,7 @@ jobs:
   sync-integration-tests: true
   minibroker-integration-tests: true
   cf-acceptance-tests: true
-  destroy-kubecf: true
+  destroy-kubecf: false
 jobs_ordered:
 - deploy-k8s
 - pre-upgrade-deploy-kubecf
