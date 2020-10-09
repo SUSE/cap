@@ -11,7 +11,7 @@ jobs:
   cf-acceptance-tests: true
   upgrade-kubecf: true
   deploy-stratos: false
-  destroy-kubecf: true
+  destroy-kubecf: false
 jobs_ordered:
 - deploy-k8s
 - deploy-kubecf
@@ -44,7 +44,7 @@ brain:
   include: ""
   exclude: ""
 cats:
-  nodes: 3
+  nodes: 6
   flake-attempts: 5
   timeout-scale: "3.0"
 s3minibroker:
