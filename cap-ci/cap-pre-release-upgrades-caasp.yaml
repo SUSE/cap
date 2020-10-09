@@ -46,7 +46,7 @@ brain:
   include: ""
   exclude: ""
 cats:
-  nodes: 3
+  nodes: 6
   flake-attempts: 5
   timeout-scale: "3.0"
 s3minibroker:
