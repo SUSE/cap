@@ -20,10 +20,10 @@ jobs_ordered:
 - deploy-stratos
 - upgrade-kubecf
 - post-upgrade-smoke-tests
-- cf-acceptance-tests-brain
 - sync-integration-tests
 - minibroker-integration-tests
 - cf-acceptance-tests
+- cf-acceptance-tests-brain
 - destroy-kubecf
 backends:
   caasp4: true

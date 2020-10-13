@@ -16,11 +16,11 @@ jobs_ordered:
 - deploy-k8s
 - deploy-kubecf
 - smoke-tests
-- cf-acceptance-tests-brain
 - sync-integration-tests
 - minibroker-integration-tests
 - cf-acceptance-tests
 - upgrade-kubecf
+- cf-acceptance-tests-brain
 - deploy-stratos
 - destroy-kubecf
 backends:
