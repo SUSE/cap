@@ -17,9 +17,9 @@ jobs_ordered:
 - deploy-kubecf
 - smoke-tests
 - sync-integration-tests
-- minibroker-integration-tests
 - cf-acceptance-tests
 - upgrade-kubecf
+- minibroker-integration-tests
 - cf-acceptance-tests-brain
 - deploy-stratos
 - destroy-kubecf
