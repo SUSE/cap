@@ -21,8 +21,8 @@ jobs_ordered:
 - upgrade-kubecf
 - post-upgrade-smoke-tests
 - sync-integration-tests
-- minibroker-integration-tests
 - cf-acceptance-tests
+- minibroker-integration-tests
 - cf-acceptance-tests-brain
 - destroy-kubecf
 backends:
