@@ -56,7 +56,7 @@ s3minibroker:
 s3:
   bucket: kubecf
   region: us-west-2
-  regexp: kubecf-bundle-v(.*).tgz
+  regexp: kubecf-bundle-v(.*)-(.*\..*).tgz
 # Scheduling is required for nightly builds, enabling it removes regular trigger on kubecf bundle.
 schedule:
   enabled: false
