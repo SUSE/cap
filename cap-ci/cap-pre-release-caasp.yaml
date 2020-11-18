@@ -11,6 +11,7 @@ jobs:
   cf-acceptance-tests: true
   upgrade-kubecf: true
   deploy-stratos: false
+  clean-cap: true
   destroy-kubecf: false
 jobs_ordered:
 - deploy-k8s
@@ -22,6 +23,7 @@ jobs_ordered:
 - minibroker-integration-tests
 - cf-acceptance-tests-brain
 - deploy-stratos
+- clean-cap
 - destroy-kubecf
 backends:
   caasp4: true
