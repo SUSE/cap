@@ -1,38 +1,38 @@
 workertags:
-  # caasp4: suse-internal
+  caasp4: suse-internal
 
 jobs:
-  deploy-k8s: true
-  pre-upgrade-deploy-kubecf: true
-  pre-upgrade-smoke-tests: true
-  deploy-stratos: false
-  upgrade-kubecf: true
-  post-upgrade-smoke-tests: true
+  deploy-k8s: false
+  deploy-kubecf: true
+  smoke-tests: true
   cf-acceptance-tests-brain: true
   sync-integration-tests: true
   minibroker-integration-tests: true
   cf-acceptance-tests: true
-  destroy-kubecf: true
+  upgrade-kubecf: true
+  deploy-stratos: false
+  clean-cap: true
+  destroy-kubecf: false
 jobs_ordered:
 - deploy-k8s
-- pre-upgrade-deploy-kubecf
-- pre-upgrade-smoke-tests
-- deploy-stratos
-- upgrade-kubecf
-- post-upgrade-smoke-tests
-- cf-acceptance-tests-brain
+- deploy-kubecf
+- smoke-tests
 - sync-integration-tests
-- minibroker-integration-tests
 - cf-acceptance-tests
+- upgrade-kubecf
+- minibroker-integration-tests
+- cf-acceptance-tests-brain
+- deploy-stratos
+- clean-cap
 - destroy-kubecf
 backends:
-  caasp4: false
-  aks: true
-  gke: true
-  eks: true
+  caasp4: true
+  aks: false
+  gke: false
+  eks: false
 availabilities:
-  sa: false
-  ha: false
+  sa: true
+  ha: true
   all: true
 schedulers:
   diego: true
@@ -56,12 +56,12 @@ s3minibroker:
 s3:
   bucket: kubecf
   region: us-west-2
-  regexp: kubecf-bundle-v(.*).tgz
+  regexp: kubecf-bundle-v0.0.0-(.*\..*).tgz
 # Scheduling is required for nightly builds, enabling it removes regular trigger on kubecf bundle.
 schedule:
-  enabled: false
+  enabled: true
   start: 12:00 AM
   stop: 12:10 AM
   location: America/Vancouver
 logs:
-  enabled: true
+  enabled: false

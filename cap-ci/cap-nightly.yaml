@@ -3,27 +3,25 @@ workertags:
 
 jobs:
   deploy-k8s: true
-  pre-upgrade-deploy-kubecf: true
-  pre-upgrade-smoke-tests: true
-  deploy-stratos: false
-  upgrade-kubecf: true
-  post-upgrade-smoke-tests: true
+  deploy-kubecf: true
+  smoke-tests: true
   cf-acceptance-tests-brain: true
   sync-integration-tests: true
   minibroker-integration-tests: true
   cf-acceptance-tests: true
+  upgrade-kubecf: true
+  deploy-stratos: false
   destroy-kubecf: true
 jobs_ordered:
 - deploy-k8s
-- pre-upgrade-deploy-kubecf
-- pre-upgrade-smoke-tests
-- deploy-stratos
-- upgrade-kubecf
-- post-upgrade-smoke-tests
+- deploy-kubecf
+- smoke-tests
 - cf-acceptance-tests-brain
 - sync-integration-tests
 - minibroker-integration-tests
 - cf-acceptance-tests
+- upgrade-kubecf
+- deploy-stratos
 - destroy-kubecf
 backends:
   caasp4: false
@@ -56,10 +54,10 @@ s3minibroker:
 s3:
   bucket: kubecf
   region: us-west-2
-  regexp: kubecf-bundle-v(.*).tgz
+  regexp: kubecf-bundle-v0.0.0-(.*\..*).tgz
 # Scheduling is required for nightly builds, enabling it removes regular trigger on kubecf bundle.
 schedule:
-  enabled: false
+  enabled: true
   start: 12:00 AM
   stop: 12:10 AM
   location: America/Vancouver
