@@ -57,7 +57,7 @@ s3:
   regexp: kubecf-bundle-v(.*).tgz
 # Scheduling is required for nightly builds, enabling it removes regular trigger on kubecf bundle.
 schedule:
-  enabled: true
+  enabled: false
   start: 12:00 AM
   stop: 12:10 AM
   location: America/Vancouver
