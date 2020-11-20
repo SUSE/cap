@@ -12,6 +12,7 @@ jobs:
   sync-integration-tests: true
   minibroker-integration-tests: true
   cf-acceptance-tests: true
+  clean-cap: true
   destroy-kubecf: false
 jobs_ordered:
 - deploy-k8s
@@ -24,6 +25,7 @@ jobs_ordered:
 - cf-acceptance-tests
 - minibroker-integration-tests
 - cf-acceptance-tests-brain
+- clean-cap
 - destroy-kubecf
 backends:
   caasp4: true
