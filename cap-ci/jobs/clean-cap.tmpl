@@ -25,16 +25,16 @@
         QUIET_OUTPUT: true
         DOWNLOAD_CATAPULT_DEPS: false
       run:
-        path: "/bin/bash"
+        path: /bin/bash
         args:
-          - -c
-          - |
-            {{ tmpl.Exec "scripts_obtain_kubeconfig" | indent 12 | trimSpace }}
-            {{ tmpl.Exec ( print "scripts_import_" .backend ) | indent 12 | trimSpace }}
-            {{- if index .jobs "stratos" }}
-            {{ tmpl.Exec "scripts_destroy_stratos" | indent 12 | trimSpace }}
-            {{- end}}
-            {{ tmpl.Exec "scripts_clean_cap" | indent 12 | trimSpace }}
+        - -c
+        - |
+          {{ tmpl.Exec "scripts_obtain_kubeconfig" | indent 12 | trimSpace }}
+          {{ tmpl.Exec ( print "scripts_import_" .backend ) | indent 12 | trimSpace }}
+          {{- if index .jobs "stratos" }}
+          {{ tmpl.Exec "scripts_destroy_stratos" | indent 12 | trimSpace }}
+          {{- end}}
+          {{ tmpl.Exec "scripts_clean_cap" | indent 12 | trimSpace }}
   - put: {{ .backend }}-pool.kube-hosts
     params:
       release: {{ .backend }}-pool.kube-hosts
