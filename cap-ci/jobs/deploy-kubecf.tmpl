@@ -6,8 +6,8 @@
   {{- if not (index .jobs "deploy-k8s") }}
   - get: schedule-interval
     trigger: true
-  {{ end }}
-  {{ end }}
+  {{- end }}
+  {{- end }}
   - get: s3.kubecf-bundle
     {{- if not (index .jobs "deploy-k8s") }}
     {{- if not .schedule.enabled }}
