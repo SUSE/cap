@@ -2,9 +2,17 @@
 - name: deploy-kubecf-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
   public: false
   plan:
+  {{- if eq .schedule.enabled true }}
+  {{- if not (index .jobs "deploy-k8s") }}
+  - get: schedule-interval
+    trigger: true
+  {{ end }}
+  {{ end }}
   - get: s3.kubecf-bundle
     {{- if not (index .jobs "deploy-k8s") }}
+    {{- if not .schedule.enabled }}
     trigger: true
+    {{- end }}
     {{- end }}
   {{- if index .jobs "deploy-stratos" }}
   - get: helm-chart.stratos-chart
