@@ -2,7 +2,7 @@
 - name: deploy-kubecf-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
   public: false
   plan:
-  {{- if eq .schedule.enabled true }}
+  {{- if .schedule.enabled }}
   {{- if not (index .jobs "deploy-k8s") }}
   - get: schedule-interval
     trigger: true
