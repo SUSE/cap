@@ -63,8 +63,8 @@ resources:
   type: s3
   source:
     bucket: {{ $config.s3.bucket }}
-    access_key_id: ((aws-access-key))
-    secret_access_key: ((aws-secret-key))
+    access_key_id: ((aws-capbot-access-key))
+    secret_access_key: ((aws-capbot-secret-key))
     regexp: {{ $config.s3.regexp }}
     region_name: {{ $config.s3.region }}
 
@@ -73,8 +73,8 @@ resources:
   type: s3
   source:
     bucket: {{ $config.s3minibroker.bucket }}
-    access_key_id: ((aws-cf-user-suse-rd.access-key))
-    secret_access_key: ((aws-cf-user-suse-rd.secret-key))
+    access_key_id: ((aws-access-key))
+    secret_access_key: ((aws-secret-key))
     regexp: {{ $config.s3minibroker.regexp }}
     region_name: {{ $config.s3minibroker.region }}
 
@@ -90,8 +90,8 @@ resources:
   type: s3
   source:
     bucket: kubecf-klog
-    access_key_id: ((aws-access-key))
-    secret_access_key: ((aws-secret-key))
+    access_key_id: ((aws-capbot-access-key))
+    secret_access_key: ((aws-capbot-secret-key))
     regexp: klog-(.*)\.tar\.gz$
     region_name: us-west-2
     endpoint: null
