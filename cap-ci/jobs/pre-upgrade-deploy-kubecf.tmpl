@@ -2,9 +2,15 @@
 - name: pre-upgrade-deploy-kubecf-{{ .scheduler }}-{{ .backend }}-{{ .avail }}
   public: false
   plan:
+  {{- if .schedule.enabled }}
+  - get: schedule-interval
+    trigger: true
+  {{- end }}
   {{- if not (index .jobs "deploy-k8s") }}
+  {{- if not .schedule.enabled }}
   - get: s3.kubecf-bundle
     trigger: true
+  {{- end }}
   {{- end }}
   - get: helm-chart.kubecf-chart
   - get: helm-chart.cfo-chart
