@@ -62,6 +62,6 @@ pr_title="Release ${product}"
 pr_description="Publish Helm charts for release ${product} created from ${cap_bundle}."
 git pull
 git checkout -b ${product}
-git add stable/kubecf stable/cf-operator
+git add stable/kubecf stable/cf-operator stable/quarks
 git commit -m "Submitting "${product}
 hub pull-request --push --message "$(printf "${pr_title}\n\n${pr_description}")" --base master
