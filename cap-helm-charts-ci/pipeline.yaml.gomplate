@@ -25,7 +25,7 @@ resources:
     private_key: {{ index (datasource "concourse-secrets") "github-private-key" | data.ToYAML | indent 3 }}
 
 jobs:
-- name: create_pr
+- name: create-pr
   plan:
   - in_parallel:
     - get: ci
@@ -33,7 +33,7 @@ jobs:
       trigger: true
     - get: helm-charts-repo
   - do:
-    - task: create_pr
+    - task: create-pr
       params:
         GITHUB_TOKEN:  {{ index (datasource "concourse-secrets") "github-access-token" }}
         GITHUB_PRIVATE_KEY:  {{ index (datasource "concourse-secrets") "github-private-key" | data.ToYAML | indent 7 }}
