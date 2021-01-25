@@ -40,5 +40,6 @@ jobs:
         GIT_MAIL: {{ .github_mail }}
         GIT_USER: {{ .github_user }}
         CHART_BUNDLE: s3.chart-bundle
+        CHART_FOLDERS: stable/kubecf stable/cf-operator stable/quarks
         HELM_CHARTS_REPO: helm-charts-repo
       file: ci/cap-helm-charts-ci/tasks/create_pr.yml
